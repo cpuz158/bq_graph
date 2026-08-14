@@ -1666,7 +1666,7 @@ def render_cytoscape_network(nodes, all_evaluated_edges, active_nodes: dict, see
 # =========================================================
 def render_3d_force_network(nodes, all_evaluated_edges, active_nodes: dict, seed_node_id: str, node_dict: dict, theme: dict, domain_meta: dict) -> str:
     """
-    선택된 IDE 테마 팔레트가 완벽하게 적용된 3D Force-Directed WebGL 우주 궤도 뷰 HTML을 생성합니다.
+    선택된 IDE 테마 팔레트와 3D 텍스트 스프라이트(SpriteText) 레이블이 상시 표시되는 3D Force-Directed WebGL 우주 궤도 뷰 HTML을 생성합니다.
     """
     is_dark = theme.get("is_dark", True)
     graph_bg = theme.get("graph_bg", theme["bg"])
@@ -1700,8 +1700,13 @@ def render_3d_force_network(nodes, all_evaluated_edges, active_nodes: dict, seed
         g_nodes.append({
             "id": str(nid),
             "name": f"[{ntype}] {nname}" if not is_seed else f"★ [{ntype}] {nname} (Seed)",
-            "val": 18 if is_seed else (11 if is_active else 4),
+            "short_label": nname,
+            "type": ntype,
+            "val": 16 if is_seed else (10 if is_active else 5),
             "color": node_color,
+            "is_active": is_active,
+            "is_seed": is_seed,
+            "text_color": ("#FFFFFF" if is_dark else "#0F172A") if is_active else ("#94A3B8" if is_dark else "#64748B"),
             "tooltip": node_tooltip
         })
 
@@ -1711,11 +1716,11 @@ def render_3d_force_network(nodes, all_evaluated_edges, active_nodes: dict, seed
         t = edge["target"]
         rel = edge["relation"]
         w = edge["dynamic_weight"]
-        is_active = edge.get("is_active", False)
+        is_edge_active = edge.get("is_active", False)
 
         s_name = node_dict.get(s, {}).get("name", s)
         t_name = node_dict.get(t, {}).get("name", t)
-        edge_tooltip = create_edge_plain_tooltip(edge, is_active, s_name, t_name)
+        edge_tooltip = create_edge_plain_tooltip(edge, is_edge_active, s_name, t_name)
 
         if rel == rel_mkt:
             edge_color = node_colors.get(domain_meta["mkt_type"], "#C084FC")
@@ -1729,10 +1734,10 @@ def render_3d_force_network(nodes, all_evaluated_edges, active_nodes: dict, seed
         g_links.append({
             "source": str(s),
             "target": str(t),
-            "name": f"{rel} ({w:.1f})",
-            "color": edge_color if is_active else ("rgba(75, 85, 99, 0.2)" if is_dark else "rgba(203, 213, 225, 0.35)"),
-            "particle": 4 if is_active else 0,
-            "particleColor": edge_color if is_active else "#666666",
+            "name": f"{rel} (Weight: {w:.1f})",
+            "color": edge_color if is_edge_active else ("rgba(75, 85, 99, 0.15)" if is_dark else "rgba(203, 213, 225, 0.3)"),
+            "particle": 4 if is_edge_active else 0,
+            "particleColor": edge_color if is_edge_active else "#666666",
             "tooltip": edge_tooltip
         })
 
@@ -1760,7 +1765,7 @@ def render_3d_force_network(nodes, all_evaluated_edges, active_nodes: dict, seed
       position: absolute;
       top: 10px;
       left: 10px;
-      background: {'rgba(0, 0, 0, 0.7)' if is_dark else 'rgba(255, 255, 255, 0.9)'};
+      background: {'rgba(0, 0, 0, 0.72)' if is_dark else 'rgba(255, 255, 255, 0.92)'};
       color: {'#FFFFFF' if is_dark else '#0F172A'};
       border: 1px solid {border_color};
       padding: 6px 14px;
@@ -1788,10 +1793,13 @@ def render_3d_force_network(nodes, all_evaluated_edges, active_nodes: dict, seed
       word-break: keep-all !important;
     }}
   </style>
+  <!-- Three.js, Three SpriteText, 3D Force Graph CDN -->
+  <script src="https://unpkg.com/three"></script>
+  <script src="https://unpkg.com/three-spritetext"></script>
   <script src="https://unpkg.com/3d-force-graph@1.73.4/dist/3d-force-graph.min.js"></script>
 </head>
 <body>
-  <div class="guide-badge">🖱️ 좌클릭 드래그: 360° 회전 | 우클릭 드래그: 팬(Pan) 이동 | 휠: 줌인/아웃 | 노드 클릭: 포커스</div>
+  <div class="guide-badge">🏷️ 3D 노드 레이블 상시 표시 모드 | 🖱️ 좌클릭: 360° 회전 | 우클릭: 이동 | 휠: 줌</div>
   <div id="3d-graph"></div>
   <script>
     const gData = {g_data_json};
@@ -1802,16 +1810,43 @@ def render_3d_force_network(nodes, all_evaluated_edges, active_nodes: dict, seed
       .graphData(gData)
       .showNavInfo(false)
       .nodeLabel(node => `<div class="scene-tooltip">${{node.tooltip}}</div>`)
-      .nodeVal('val')
-      .nodeColor('color')
-      .nodeResolution(20)
       .linkLabel(link => `<div class="scene-tooltip">${{link.tooltip}}</div>`)
       .linkColor('color')
-      .linkWidth(link => link.particle > 0 ? 2.0 : 0.5)
+      .linkWidth(link => link.particle > 0 ? 1.8 : 0.4)
       .linkDirectionalParticles('particle')
       .linkDirectionalParticleSpeed(0.008)
-      .linkDirectionalParticleWidth(2.6)
+      .linkDirectionalParticleWidth(2.5)
       .linkDirectionalParticleColor(link => link.particleColor)
+      // 노드 구체(Sphere) + 상단 텍스트 스프라이트(SpriteText) 동시 렌더링
+      .nodeThreeObject(node => {{
+        const group = new THREE.Group();
+
+        // 1) 3D 구체 (Node Sphere)
+        const radius = node.val * 0.7;
+        const geometry = new THREE.SphereGeometry(radius, 20, 20);
+        const material = new THREE.MeshLambertMaterial({{
+          color: node.color,
+          transparent: true,
+          opacity: node.is_active ? 0.95 : 0.3
+        }});
+        const sphere = new THREE.Mesh(geometry, material);
+        group.add(sphere);
+
+        // 2) 텍스트 스프라이트 레이블 (Node Text Label - 카메라 정면 항상 응시)
+        if (typeof SpriteText !== 'undefined') {{
+          const sprite = new SpriteText(node.short_label);
+          sprite.color = node.text_color;
+          sprite.textHeight = node.is_seed ? 6.2 : (node.is_active ? 4.5 : 2.5);
+          sprite.position.y = radius + (sprite.textHeight * 0.85); // 구체 바로 위에 배치
+          sprite.backgroundColor = node.is_active ? '{graph_bg}bb' : 'transparent';
+          sprite.padding = 1.5;
+          sprite.borderRadius = 3;
+          group.add(sprite);
+        }}
+
+        return group;
+      }})
+      .nodeThreeObjectExtend(false)
       .onNodeClick(node => {{
         const distance = 120;
         const distRatio = 1 + distance / Math.hypot(node.x, node.y, node.z);
@@ -1822,9 +1857,9 @@ def render_3d_force_network(nodes, all_evaluated_edges, active_nodes: dict, seed
         );
       }});
 
-    // 카메라 위치 초기 조정
+    // 초기 카메라 거리 설정
     setTimeout(() => {{
-      Graph.cameraPosition({{ z: 290 }});
+      Graph.cameraPosition({{ z: 320 }});
     }}, 200);
   </script>
 </body>
