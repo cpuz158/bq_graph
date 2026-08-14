@@ -325,6 +325,7 @@ def generate_theme_css(theme: dict, domain_meta: dict) -> str:
 def generate_domain_data(domain: str):
     """
     선택된 비즈니스 도메인에 따라 노드, 엣지 및 도메인 메타데이터를 반환합니다.
+    (모든 노드 라벨에 가격/비용/할인 태그가 상시 노출되도록 포함)
     """
     if domain.startswith("🚗"):
         # -------------------------------------------------------------
@@ -337,13 +338,13 @@ def generate_domain_data(domain: str):
             "parent_type": "FamilyCar",
             "parent_label": "FamilyCar (차종)",
             "child_type": "ModelCode",
-            "child_label": "ModelCode (모델코드)",
+            "child_label": "ModelCode (모델코드/가격)",
             "filter_type": "Region",
             "filter_label": "판매지역 (Region)",
             "mkt_type": "MarketingInfo",
-            "mkt_label": "MarketingInfo (마케팅/KSP)",
+            "mkt_label": "MarketingInfo (프로모션/할인)",
             "spec_type": "SpecItem",
-            "spec_label": "SpecItem (사양/옵션)",
+            "spec_label": "SpecItem (옵션/추가가격)",
             "rel_belongs": "BELONGS_TO",
             "rel_filter": "AVAILABLE_IN",
             "rel_mkt": "HAS_KSP",
@@ -352,38 +353,38 @@ def generate_domain_data(domain: str):
             "filter_options": ["KR", "US", "ALL"],
             "filter_options_labels": {"KR": "KR (대한민국 내수)", "US": "US (미국 시장)", "ALL": "ALL (전체 지역)"},
             "presets": [
-                {"label": "Preset 1: '신형 소렌토 곧 나온다며?' (마케팅/출시 정보)", "query": "신형 소렌토 곧 나온다며?", "intent": "INFO_SEARCH", "seed": "FC_SORENTO", "max_hop": 2, "weight_threshold": 0.50, "filter": "KR"},
-                {"label": "Preset 2: '소렌토 구매하려고 하는데 옵션 추천해줘' (실구매/사양)", "query": "소렌토 구매하려고 하는데 옵션 추천해줘", "intent": "PURCHASE_INTENT", "seed": "FC_SORENTO", "max_hop": 2, "weight_threshold": 0.50, "filter": "KR"},
-                {"label": "Preset 3: '싼타페 하이브리드 신차 소식 알려줘' (마케팅/출시 정보)", "query": "싼타페 하이브리드 신차 소식 알려줘", "intent": "INFO_SEARCH", "seed": "FC_SANTAFE", "max_hop": 2, "weight_threshold": 0.50, "filter": "KR"},
-                {"label": "Preset 4: '싼타페 풀옵션 사양 및 견적 확인' (실구매/사양)", "query": "싼타페 풀옵션 사양 및 견적 확인", "intent": "PURCHASE_INTENT", "seed": "FC_SANTAFE", "max_hop": 2, "weight_threshold": 0.50, "filter": "KR"}
+                {"label": "Preset 1: '신형 소렌토 곧 나온다며?' (마케팅/할인 혜택)", "query": "신형 소렌토 곧 나온다며?", "intent": "INFO_SEARCH", "seed": "FC_SORENTO", "max_hop": 2, "weight_threshold": 0.50, "filter": "KR"},
+                {"label": "Preset 2: '소렌토 구매하려고 하는데 옵션 추천해줘' (실구매/출고가/옵션가)", "query": "소렌토 구매하려고 하는데 옵션 추천해줘", "intent": "PURCHASE_INTENT", "seed": "FC_SORENTO", "max_hop": 2, "weight_threshold": 0.50, "filter": "KR"},
+                {"label": "Preset 3: '싼타페 하이브리드 신차 소식 알려줘' (마케팅/할인 혜택)", "query": "싼타페 하이브리드 신차 소식 알려줘", "intent": "INFO_SEARCH", "seed": "FC_SANTAFE", "max_hop": 2, "weight_threshold": 0.50, "filter": "KR"},
+                {"label": "Preset 4: '싼타페 풀옵션 사양 및 견적 확인' (실구매/출고가/옵션가)", "query": "싼타페 풀옵션 사양 및 견적 확인", "intent": "PURCHASE_INTENT", "seed": "FC_SANTAFE", "max_hop": 2, "weight_threshold": 0.50, "filter": "KR"}
             ]
         }
 
         nodes = [
             {"id": "FC_SORENTO", "name": "소렌토 (Sorento)", "type": "FamilyCar", "desc": "기아 대표 중형 패밀리 SUV", "attributes": {"segment": "Midsize SUV", "manufacturer": "Kia", "seats": "5/6/7인승"}},
             {"id": "FC_SANTAFE", "name": "싼타페 (Santa Fe)", "type": "FamilyCar", "desc": "현대 대표 도심형/아웃도어 패밀리 SUV", "attributes": {"segment": "Midsize SUV", "manufacturer": "Hyundai", "seats": "5/6/7인승"}},
-            {"id": "MC_MQ4_KR", "name": "MQ4 (소렌토 가솔린/디젤 내수)", "type": "ModelCode", "desc": "4세대 소렌토 국내 내연기관 모델", "attributes": {"generation": "4th Gen", "powertrain": "2.5T / 2.2D", "market": "KR"}},
-            {"id": "MC_MQ4_HEV_KR", "name": "MQ4 HEV (소렌토 하이브리드 내수)", "type": "ModelCode", "desc": "4세대 소렌토 국내 터보 하이브리드 모델", "attributes": {"generation": "4th Gen", "powertrain": "1.6T HEV", "market": "KR"}},
-            {"id": "MC_MQ4_US", "name": "MQ4a (소렌토 북미 수출형)", "type": "ModelCode", "desc": "소렌토 북미 조지아 공장 생산형", "attributes": {"generation": "4th Gen", "powertrain": "2.5T / 1.6T HEV", "market": "US"}},
-            {"id": "MC_MX5_KR", "name": "MX5 (싼타페 가솔린 내수)", "type": "ModelCode", "desc": "5세대 디 올 뉴 싼타페 국내 가솔린 모델", "attributes": {"generation": "5th Gen", "powertrain": "2.5T", "market": "KR"}},
-            {"id": "MC_MX5_HEV_KR", "name": "MX5 HEV (싼타페 하이브리드 내수)", "type": "ModelCode", "desc": "5세대 디 올 뉴 싼타페 국내 터보 하이브리드 모델", "attributes": {"generation": "5th Gen", "powertrain": "1.6T HEV", "market": "KR"}},
-            {"id": "MC_MX5_US", "name": "MX5a (싼타페 북미 수출형)", "type": "ModelCode", "desc": "싼타페 북미 수출 및 현지 생산형", "attributes": {"generation": "5th Gen", "powertrain": "2.5T AWD", "market": "US"}},
+            {"id": "MC_MQ4_KR", "name": "MQ4 내수 가솔린/디젤 [3,500만원~]", "type": "ModelCode", "desc": "4세대 소렌토 국내 내연기관 모델 (기본 출고가)", "attributes": {"generation": "4th Gen", "powertrain": "2.5T / 2.2D", "base_price": "3,500만원~", "base_price_num": 35000000, "market": "KR"}},
+            {"id": "MC_MQ4_HEV_KR", "name": "MQ4 HEV 하이브리드 [3,780만원~]", "type": "ModelCode", "desc": "4세대 소렌토 국내 터보 하이브리드 인기 모델", "attributes": {"generation": "4th Gen", "powertrain": "1.6T HEV", "base_price": "3,780만원~", "base_price_num": 37800000, "market": "KR"}},
+            {"id": "MC_MQ4_US", "name": "MQ4a 북미 수출형 [$31,990~]", "type": "ModelCode", "desc": "소렌토 북미 조지아 공장 생산형 (MSRP 기준)", "attributes": {"generation": "4th Gen", "powertrain": "2.5T / 1.6T HEV", "base_price": "$31,990~", "base_price_num": 31990, "market": "US"}},
+            {"id": "MC_MX5_KR", "name": "MX5 가솔린 2.5T [3,540만원~]", "type": "ModelCode", "desc": "5세대 디 올 뉴 싼타페 국내 가솔린 모델", "attributes": {"generation": "5th Gen", "powertrain": "2.5T", "base_price": "3,540만원~", "base_price_num": 35400000, "market": "KR"}},
+            {"id": "MC_MX5_HEV_KR", "name": "MX5 HEV 하이브리드 [3,880만원~]", "type": "ModelCode", "desc": "5세대 디 올 뉴 싼타페 국내 터보 하이브리드 모델", "attributes": {"generation": "5th Gen", "powertrain": "1.6T HEV", "base_price": "3,880만원~", "base_price_num": 38800000, "market": "KR"}},
+            {"id": "MC_MX5_US", "name": "MX5a 북미 수출형 [$33,950~]", "type": "ModelCode", "desc": "싼타페 북미 수출 및 현지 생산형 (MSRP 기준)", "attributes": {"generation": "5th Gen", "powertrain": "2.5T AWD", "base_price": "$33,950~", "base_price_num": 33950, "market": "US"}},
             {"id": "REG_KR", "name": "KR (대한민국)", "type": "Region", "desc": "국내 내수 시장 (K-Certification / 국내 보증)", "attributes": {"code": "KR", "currency": "KRW", "ev_subsidy": "적용"}},
             {"id": "REG_US", "name": "US (미국)", "type": "Region", "desc": "북미 시장 (EPA / IIHS 규격)", "attributes": {"code": "US", "currency": "USD", "safety_std": "FMVSS"}},
             {"id": "REG_SEA", "name": "SEA (동남아)", "type": "Region", "desc": "동남아 아세안 시장 (우핸들/열대 특화)", "attributes": {"code": "SEA", "currency": "USD/Local", "climate": "Tropical"}},
-            {"id": "SPEC_HEV_16T", "name": "1.6T 터보 하이브리드", "type": "SpecItem", "desc": "최고출력 245ps(합산), 복합연비 15.7km/L 하이브리드 파워트레인", "attributes": {"category": "Powertrain", "efficiency": "15.7 km/L", "power": "245 ps"}},
-            {"id": "SPEC_GAS_25T", "name": "2.5T 가솔린 터보", "type": "SpecItem", "desc": "최고출력 281ps, 최대토크 43.0kgf·m 스마트스트림 G2.5T", "attributes": {"category": "Powertrain", "power": "281 ps", "torque": "43.0 kgf·m"}},
-            {"id": "SPEC_AWD", "name": "전자식 AWD (4륜구동)", "type": "SpecItem", "desc": "지형 반응 모드(터레인 모드: Snow/Mud/Sand) 연동 전자식 4WD", "attributes": {"category": "Drivetrain", "terrain_mode": "Auto/Snow/Mud/Sand"}},
-            {"id": "SPEC_HUD", "name": "HUD (헤드업 디스플레이)", "type": "SpecItem", "desc": "10인치 윈드실드 타입 고해상도 그래픽 HUD", "attributes": {"category": "Convenience", "size": "10 inch"}},
-            {"id": "SPEC_DRIVEWISE", "name": "드라이브 와이즈 (고속도로 주행보조 2)", "type": "SpecItem", "desc": "HDA2, 전방 충돌방지 보조, 스마트 크루즈(정차&재출발) 패키지", "attributes": {"category": "Safety / ADAS", "level": "Level 2+"}},
-            {"id": "SPEC_BUILTINCAM2", "name": "빌트인 캠 2 (QHD)", "type": "SpecItem", "desc": "전후방 QHD 고화질 녹화, 음성녹음 및 증강현실 내비게이션 지원", "attributes": {"category": "Electronics", "resolution": "QHD"}},
-            {"id": "SPEC_PANORAMA_SUNROOF", "name": "파노라마 선루프", "type": "SpecItem", "desc": "와이드 오픈 파노라마 선루프 & 전동 롤 블라인드", "attributes": {"category": "Exterior", "type": "Wide Electric"}},
-            {"id": "MKT_2025_RELEASE", "name": "2025 신형 출시 일정 & 사전계약 혜택", "type": "MarketingInfo", "desc": "2025년형 페이스리프트 출시 일정 확정, 연 2.9% 저금리 & 50만원 바우처", "attributes": {"target_date": "2025 Q3", "benefit": "연 2.9% 저금리"}},
-            {"id": "MKT_FAMILY_SPACE", "name": "동급 최고 패밀리 SUV 공간성 & 3열 독립시트", "type": "MarketingInfo", "desc": "2,815mm 동급 최장 휠베이스로 3열 폴딩 시 최대 2,044L 트렁크 공간 제공", "attributes": {"wheelbase": "2,815 mm"}},
-            {"id": "MKT_HEV_BENEFIT", "name": "하이브리드 친환경차 세제혜택 & 복합연비 15.7km/L", "type": "MarketingInfo", "desc": "개별소비세/취득세 최대 143만원 감면 및 공영주차장 50% 할인 혜택", "attributes": {"tax_discount": "최대 143만원"}},
-            {"id": "MKT_SAFETY_TSP", "name": "북미 IIHS 톱 세이프티 픽 플러스(TSP+) 획득", "type": "MarketingInfo", "desc": "미국 IIHS 충돌 평가 최고 등급 획득 및 10-에어백 기본 탑재", "attributes": {"rating": "IIHS TSP+"}},
-            {"id": "MKT_DESIGN_STARMAP", "name": "시그니처 스타맵 라이팅 & 커브드 디스플레이", "type": "MarketingInfo", "desc": "기아 최신 수직형 헤드램프 및 12.3인치 듀얼 파노라믹 디스플레이", "attributes": {"cluster": "12.3인치 파노라믹"}},
-            {"id": "MKT_SANTAFE_HLIGHT", "name": "H-라이트 디자인 & 테라스 테일게이트", "type": "MarketingInfo", "desc": "현대 엠블럼 재해석 H-시그니처 램프와 아웃도어 특화 대형 테일게이트", "attributes": {"concept": "Open for More"}}
+            {"id": "SPEC_HEV_16T", "name": "1.6T HEV 전용 엔진 (+기본포함)", "type": "SpecItem", "desc": "최고출력 245ps(합산), 복합연비 15.7km/L 터보 하이브리드 엔진", "attributes": {"category": "Powertrain", "option_price": "0원 (기본포함)", "efficiency": "15.7 km/L", "power": "245 ps"}},
+            {"id": "SPEC_GAS_25T", "name": "2.5T 가솔린 AWD (+$2,000)", "type": "SpecItem", "desc": "최고출력 281ps, 최대토크 43.0kgf·m 스마트스트림 G2.5T 북미 사양", "attributes": {"category": "Powertrain", "option_price": "$2,000", "power": "281 ps", "torque": "43.0 kgf·m"}},
+            {"id": "SPEC_AWD", "name": "전자식 AWD 4륜구동 (+200만원)", "type": "SpecItem", "desc": "지형 반응 모드(터레인 모드: Snow/Mud/Sand) 연동 전자식 4WD", "attributes": {"category": "Drivetrain", "option_price": "200만원", "terrain_mode": "Auto/Snow/Mud/Sand"}},
+            {"id": "SPEC_HUD", "name": "10인치 헤드업 디스플레이 (+70만원)", "type": "SpecItem", "desc": "10인치 윈드실드 타입 고해상도 그래픽 HUD", "attributes": {"category": "Convenience", "option_price": "70만원", "size": "10 inch"}},
+            {"id": "SPEC_DRIVEWISE", "name": "드라이브 와이즈 ADAS (+120만원)", "type": "SpecItem", "desc": "HDA2, 전방 충돌방지 보조, 스마트 크루즈(정차&재출발) 안전 패키지", "attributes": {"category": "Safety / ADAS", "option_price": "120만원", "level": "Level 2+"}},
+            {"id": "SPEC_BUILTINCAM2", "name": "QHD 빌트인 캠 2 (+45만원)", "type": "SpecItem", "desc": "전후방 QHD 고화질 녹화, 음성녹음 및 증강현실 내비게이션 지원", "attributes": {"category": "Electronics", "option_price": "45만원", "resolution": "QHD"}},
+            {"id": "SPEC_PANORAMA_SUNROOF", "name": "와이드 파노라마 선루프 (+110만원)", "type": "SpecItem", "desc": "와이드 오픈 파노라마 선루프 & 전동 롤 블라인드", "attributes": {"category": "Exterior", "option_price": "110만원", "type": "Wide Electric"}},
+            {"id": "MKT_2025_RELEASE", "name": "2025 페이스리프트 (사전예약 혜택 50만원)", "type": "MarketingInfo", "desc": "2025년형 페이스리프트 출시 일정 확정, 연 2.9% 저금리 & 50만원 바우처 지원", "attributes": {"target_date": "2025 Q3", "discount": "50만원 바우처", "benefit": "연 2.9% 저금리"}},
+            {"id": "MKT_FAMILY_SPACE", "name": "패밀리 공간성 (2열 독립시트 무상)", "type": "MarketingInfo", "desc": "2,815mm 동급 최장 휠베이스, 2열 독립 캡틴시트 무상 업그레이드 프로모션", "attributes": {"wheelbase": "2,815 mm", "discount": "무상 업그레이드"}},
+            {"id": "MKT_HEV_BENEFIT", "name": "친환경차 세제혜택 (최대 143만원 감면)", "type": "MarketingInfo", "desc": "개별소비세/취득세 최대 143만원 감면 및 공영주차장 50% 할인 혜택", "attributes": {"discount": "최대 143만원 감면", "benefit": "공영주차장 50%"}},
+            {"id": "MKT_SAFETY_TSP", "name": "북미 IIHS TSP+ 최고안전등급 (보험료 10% 감면)", "type": "MarketingInfo", "desc": "미국 IIHS 충돌 평가 최고 등급 획득 및 10-에어백 기본 탑재", "attributes": {"rating": "IIHS TSP+", "discount": "보험료 10% 감면"}},
+            {"id": "MKT_DESIGN_STARMAP", "name": "스타맵 라이팅 (스타일 패키지 30만 할인)", "type": "MarketingInfo", "desc": "기아 최신 수직형 헤드램프 및 12.3인치 듀얼 파노라믹 디스플레이", "attributes": {"discount": "30만원 할인", "cluster": "12.3인치 파노라믹"}},
+            {"id": "MKT_SANTAFE_HLIGHT", "name": "테라스 테일게이트 (아웃도어 패키지 40만 지원)", "type": "MarketingInfo", "desc": "현대 엠블럼 재해석 H-시그니처 램프와 아웃도어 특화 대형 테일게이트", "attributes": {"discount": "40만원 지원", "concept": "Open for More"}}
         ]
 
         edges = [
@@ -441,13 +442,13 @@ def generate_domain_data(domain: str):
             "parent_type": "BrandCategory",
             "parent_label": "BrandCategory (브랜드/카테고리)",
             "child_type": "ProductSKU",
-            "child_label": "ProductSKU (상품 SKU)",
+            "child_label": "ProductSKU (상품 SKU/정가)",
             "filter_type": "TargetSegment",
             "filter_label": "타깃 세그먼트 (Target Segment)",
             "mkt_type": "PromoEvent",
-            "mkt_label": "PromoEvent (기획전/프로모션)",
+            "mkt_label": "PromoEvent (기획전/쿠폰할인)",
             "spec_type": "ProductSpec",
-            "spec_label": "ProductSpec (상세 스펙/소재)",
+            "spec_label": "ProductSpec (상세 스펙/사양가치)",
             "rel_belongs": "BELONGS_TO",
             "rel_filter": "TARGETS",
             "rel_mkt": "HAS_PROMO",
@@ -456,31 +457,31 @@ def generate_domain_data(domain: str):
             "filter_options": ["SEG_BEGINNER", "SEG_MARATHON", "ALL"],
             "filter_options_labels": {"SEG_BEGINNER": "입문/초보 러너 (Beginner)", "SEG_MARATHON": "마라톤 풀코스/엘리트 (Marathon)", "ALL": "ALL (전체 세그먼트)"},
             "presets": [
-                {"label": "Preset 1: '요즘 인기 있는 러닝화 기획전 있어?' (프로모션 탐색)", "query": "요즘 인기 있는 러닝화 기획전 있어?", "intent": "INFO_SEARCH", "seed": "BC_NIKE_RUNNING", "max_hop": 2, "weight_threshold": 0.50, "filter": "SEG_BEGINNER"},
-                {"label": "Preset 2: '페가수스 41 쿠셔닝 폼이랑 무게 스펙 알려줘' (상품 스펙/구매)", "query": "페가수스 41 쿠셔닝 폼이랑 무게 스펙 알려줘", "intent": "PURCHASE_INTENT", "seed": "BC_NIKE_RUNNING", "max_hop": 2, "weight_threshold": 0.50, "filter": "SEG_BEGINNER"},
-                {"label": "Preset 3: '봄맞이 캠핑 텐트 할인 프로모션 확인' (프로모션 탐색)", "query": "봄맞이 캠핑 텐트 할인 프로모션 확인", "intent": "INFO_SEARCH", "seed": "BC_CAMPING_TENT", "max_hop": 2, "weight_threshold": 0.50, "filter": "SEG_BEGINNER"},
-                {"label": "Preset 4: '알파플라이 3 카본 플레이트 및 마라톤 사양 비교' (상품 스펙/구매)", "query": "알파플라이 3 카본 플레이트 및 마라톤 사양 비교", "intent": "PURCHASE_INTENT", "seed": "BC_NIKE_RUNNING", "max_hop": 2, "weight_threshold": 0.50, "filter": "SEG_MARATHON"}
+                {"label": "Preset 1: '요즘 인기 있는 러닝화 기획전 있어?' (프로모션/쿠폰할인)", "query": "요즘 인기 있는 러닝화 기획전 있어?", "intent": "INFO_SEARCH", "seed": "BC_NIKE_RUNNING", "max_hop": 2, "weight_threshold": 0.50, "filter": "SEG_BEGINNER"},
+                {"label": "Preset 2: '페가수스 41 쿠셔닝 폼이랑 무게 스펙 알려줘' (상품 판매가/스펙가치)", "query": "페가수스 41 쿠셔닝 폼이랑 무게 스펙 알려줘", "intent": "PURCHASE_INTENT", "seed": "BC_NIKE_RUNNING", "max_hop": 2, "weight_threshold": 0.50, "filter": "SEG_BEGINNER"},
+                {"label": "Preset 3: '봄맞이 캠핑 텐트 할인 프로모션 확인' (프로모션/기프트)", "query": "봄맞이 캠핑 텐트 할인 프로모션 확인", "intent": "INFO_SEARCH", "seed": "BC_CAMPING_TENT", "max_hop": 2, "weight_threshold": 0.50, "filter": "SEG_BEGINNER"},
+                {"label": "Preset 4: '알파플라이 3 카본 플레이트 및 마라톤 사양 비교' (프리미엄가/사양)", "query": "알파플라이 3 카본 플레이트 및 마라톤 사양 비교", "intent": "PURCHASE_INTENT", "seed": "BC_NIKE_RUNNING", "max_hop": 2, "weight_threshold": 0.50, "filter": "SEG_MARATHON"}
             ]
         }
 
         nodes = [
             {"id": "BC_NIKE_RUNNING", "name": "나이키 러닝 (Nike Running)", "type": "BrandCategory", "desc": "글로벌 No.1 퍼포먼스 러닝화 라인업", "attributes": {"category": "Footwear", "brand": "Nike", "season": "2025 S/S"}},
             {"id": "BC_CAMPING_TENT", "name": "프리미엄 캠핑 텐트 (Camping Tent)", "type": "BrandCategory", "desc": "사계절 패밀리 오토캠핑 및 쉘터 라인업", "attributes": {"category": "Outdoor", "brand": "SnowPeak / Helinox", "season": "2025 S/S"}},
-            {"id": "SKU_PEGASUS_41", "name": "에어 줌 페가수스 41", "type": "ProductSKU", "desc": "국민 데일리 트레이닝 러닝화 (ReactX 탑재)", "attributes": {"price": "159,000원", "weight": "281g", "market": "SEG_BEGINNER"}},
-            {"id": "SKU_ALPHAFLY_3", "name": "에어 줌 알파플라이 3", "type": "ProductSKU", "desc": "세계 마라톤 신기록 수립 엘리트 레이싱화", "attributes": {"price": "329,000원", "weight": "218g", "market": "SEG_MARATHON"}},
-            {"id": "SKU_VAPORFLY_3", "name": "줌엑스 베이퍼플라이 3", "type": "ProductSKU", "desc": "하프/풀코스 로드 레이싱 올라운더 레이서", "attributes": {"price": "299,000원", "weight": "198g", "market": "SEG_MARATHON"}},
-            {"id": "SKU_DOME_TENT_4P", "name": "어메니티 돔 4인용 텐트", "type": "ProductSKU", "desc": "초보자도 10분 설치 가능한 패밀리 돔 텐트", "attributes": {"price": "498,000원", "capacity": "4인", "market": "SEG_BEGINNER"}},
-            {"id": "SKU_TUNNEL_SHELTER", "name": "랜드락 대형 투룸 쉘터", "type": "ProductSKU", "desc": "광활한 거실형 사계절 대형 패밀리 쉘터", "attributes": {"price": "1,980,000원", "capacity": "6인", "market": "SEG_MARATHON"}},
+            {"id": "SKU_PEGASUS_41", "name": "나이키 페가수스 41 [159,000원]", "type": "ProductSKU", "desc": "국민 데일리 트레이닝 러닝화 (정가 15.9만원)", "attributes": {"price": "159,000원", "price_num": 159000, "weight": "281g", "market": "SEG_BEGINNER"}},
+            {"id": "SKU_ALPHAFLY_3", "name": "에어줌 알파플라이 3 [359,000원]", "type": "ProductSKU", "desc": "세계 마라톤 신기록 수립 엘리트 레이싱화 (정가 35.9만원)", "attributes": {"price": "359,000원", "price_num": 359000, "weight": "218g", "market": "SEG_MARATHON"}},
+            {"id": "SKU_VAPORFLY_3", "name": "줌엑스 베이퍼플라이 3 [299,000원]", "type": "ProductSKU", "desc": "하프/풀코스 로드 레이싱 올라운더 레이서 (정가 29.9만원)", "attributes": {"price": "299,000원", "price_num": 299000, "weight": "198g", "market": "SEG_MARATHON"}},
+            {"id": "SKU_DOME_TENT_4P", "name": "어메니티 돔 4인용 [498,000원]", "type": "ProductSKU", "desc": "초보자도 10분 설치 가능한 패밀리 돔 텐트 (정가 49.8만원)", "attributes": {"price": "498,000원", "price_num": 498000, "capacity": "4인", "market": "SEG_BEGINNER"}},
+            {"id": "SKU_TUNNEL_SHELTER", "name": "랜드락 대형 투룸 쉘터 [1,980,000원]", "type": "ProductSKU", "desc": "광활한 거실형 사계절 대형 패밀리 쉘터 (정가 198만원)", "attributes": {"price": "1,980,000원", "price_num": 1980000, "capacity": "6인", "market": "SEG_MARATHON"}},
             {"id": "SEG_BEGINNER", "name": "입문/초보 러너 & 캠퍼", "type": "TargetSegment", "desc": "가성비와 편안함, 쉬운 사용성을 중시하는 입문 고객군", "attributes": {"code": "SEG_BEGINNER", "experience": "Entry / Intermediate"}},
             {"id": "SEG_MARATHON", "name": "마라톤 풀코스 & 헤비 캠퍼", "type": "TargetSegment", "desc": "서브-3 기록 단축 및 익스트림 아웃도어 매니아", "attributes": {"code": "SEG_MARATHON", "experience": "Advanced / Pro"}},
-            {"id": "SPEC_ZOOMX_FOAM", "name": "ZoomX 초경량 고반발 폼", "type": "ProductSpec", "desc": "에너지 리턴 85%의 항공우주 등급 초경량 미드솔 폼", "attributes": {"category": "Midsole", "energy_return": "85%"}},
-            {"id": "SPEC_CARBON_PLATE", "name": "풀렝스 카본 플라이플레이트", "type": "ProductSpec", "desc": "추진력을 극대화하는 전족부-후족부 일체형 탄소섬유판", "attributes": {"category": "Plate", "material": "Full Carbon"}},
-            {"id": "SPEC_REACTX_FOAM", "name": "ReactX 친환경 고내구성 폼", "type": "ProductSpec", "desc": "탄소 배출량 43% 감축 및 13% 향상된 쿠셔닝 제공", "attributes": {"category": "Midsole", "eco": "43% Lower Carbon"}},
-            {"id": "SPEC_WATERPROOF_3000", "name": "내수압 3,000mm 립스탑 스킨", "type": "ProductSpec", "desc": "폭우와 강풍을 완벽 차단하는 고밀도 75D 테프론 발수 코팅", "attributes": {"category": "Fabric", "waterproof": "3,000mm"}},
-            {"id": "SPEC_ALU_POLE", "name": "두랄루민 7001 고강도 알루미늄 폴", "type": "ProductSpec", "desc": "항공기용 고강도 경량 알루미늄 폴대 프레임", "attributes": {"category": "Frame", "alloy": "Duralumin 7001"}},
-            {"id": "PROMO_SPRING_20", "name": "봄맞이 런페스타 20% 할인쿠폰", "type": "PromoEvent", "desc": "신학기 러닝 시즌 오픈 전상품 20% 즉시할인 및 멤버십 적립", "attributes": {"discount": "20%", "period": "2025-04-30까지"}},
-            {"id": "PROMO_NEW_LAUNCH", "name": "알파플라이 3 론칭 사은품 & 러닝양말 증정", "type": "PromoEvent", "desc": "신제품 론칭 기념 드라이핏 레이싱 삭스 & 전용 슈즈백 증정", "attributes": {"gift": "Racing Socks & Bag"}},
-            {"id": "PROMO_OUTDOOR_FEST", "name": "아웃도어 페스타 그라운드시트 증정", "type": "PromoEvent", "desc": "텐트/쉘터 구매 시 12만원 상당 방수 그라운드시트 무료 증정", "attributes": {"benefit": "그라운드시트 증정"}}
+            {"id": "SPEC_ZOOMX_FOAM", "name": "ZoomX 고반발 폼 (+핵심 사양)", "type": "ProductSpec", "desc": "에너지 리턴 85%의 항공우주 등급 초경량 미드솔 폼", "attributes": {"category": "Midsole", "spec_value": "기본탑재 (반발력 85%)", "option_price": "핵심 기본탑재"}},
+            {"id": "SPEC_CARBON_PLATE", "name": "풀렝스 카본 플라이플레이트 (+프리미엄)", "type": "ProductSpec", "desc": "추진력을 극대화하는 전족부-후족부 일체형 탄소섬유판", "attributes": {"category": "Plate", "spec_value": "선수용옵션 (카본 100%)", "option_price": "프리미엄 옵션"}},
+            {"id": "SPEC_REACTX_FOAM", "name": "ReactX 쿠셔닝 폼 (+친환경 에코)", "type": "ProductSpec", "desc": "탄소 배출량 43% 감축 및 13% 향상된 쿠셔닝 제공", "attributes": {"category": "Midsole", "spec_value": "기본탑재", "option_price": "친환경 기본사양"}},
+            {"id": "SPEC_WATERPROOF_3000", "name": "내수압 3,000mm 립스탑 (+고내수압 원단)", "type": "ProductSpec", "desc": "폭우와 강풍을 완벽 차단하는 고밀도 75D 테프론 발수 코팅", "attributes": {"category": "Fabric", "spec_value": "테프론 발수 가공", "option_price": "고급 원단사양"}},
+            {"id": "SPEC_ALU_POLE", "name": "두랄루민 7001 폴대 (+초경량 고강도)", "type": "ProductSpec", "desc": "항공기용 고강도 경량 알루미늄 폴대 프레임", "attributes": {"category": "Frame", "spec_value": "항공 알루미늄", "option_price": "초경량 알루미늄"}},
+            {"id": "PROMO_SPRING_20", "name": "봄맞이 시즌오프 기획전 (20% 할인 쿠폰)", "type": "PromoEvent", "desc": "신학기 러닝 시즌 오픈 전상품 20% 즉시할인 및 멤버십 적립", "attributes": {"discount_rate": "20% 할인", "discount_val": "최대 7만원 할인", "period": "2025-04-30까지"}},
+            {"id": "PROMO_NEW_LAUNCH", "name": "신규 런칭 기념 (사은품 양말 증정 + 1만원 할인)", "type": "PromoEvent", "desc": "신제품 론칭 기념 드라이핏 레이싱 삭스 & 1만원 즉시 할인", "attributes": {"discount_amt": "10,000원 할인", "gift": "Racing Socks & Bag"}},
+            {"id": "PROMO_OUTDOOR_FEST", "name": "아웃도어 페스타 (12만원 상당 그라운드시트 증정)", "type": "PromoEvent", "desc": "텐트/쉘터 구매 시 12만원 상당 방수 그라운드시트 무료 증정", "attributes": {"benefit_val": "120,000원 상당 증정", "gift": "방수 그라운드시트"}}
         ]
 
         edges = [
@@ -519,13 +520,13 @@ def generate_domain_data(domain: str):
             "parent_type": "PlanFamily",
             "parent_label": "PlanFamily (요금제 패밀리)",
             "child_type": "PlanCode",
-            "child_label": "PlanCode (세부 요금제)",
+            "child_label": "PlanCode (세부 요금제/월정액)",
             "filter_type": "TargetUser",
             "filter_label": "가입 대상 (Target User)",
             "mkt_type": "MarketingBenefit",
-            "mkt_label": "MarketingBenefit (부가 혜택/멤버십)",
+            "mkt_label": "MarketingBenefit (무료혜택/환산가치)",
             "spec_type": "PlanSpec",
-            "spec_label": "PlanSpec (요금제 데이터/QoS 스펙)",
+            "spec_label": "PlanSpec (데이터/QoS/과금)",
             "rel_belongs": "BELONGS_TO",
             "rel_filter": "TARGETS",
             "rel_mkt": "HAS_BENEFIT",
@@ -534,10 +535,10 @@ def generate_domain_data(domain: str):
             "filter_options": ["USER_GENERAL", "USER_YOUTH", "USER_SENIOR", "ALL"],
             "filter_options_labels": {"USER_GENERAL": "일반 가입자 (General)", "USER_YOUTH": "청년 만 19~34세 (Youth)", "USER_SENIOR": "시니어 만 65세 이상 (Senior)", "ALL": "ALL (전체 연령)"},
             "presets": [
-                {"label": "Preset 1: 'OTT 무료로 볼 수 있는 5G 요금제 뭐가 있어?' (혜택 탐색)", "query": "OTT 무료로 볼 수 있는 5G 요금제 뭐가 있어?", "intent": "INFO_SEARCH", "seed": "PF_5G_PREMIER", "max_hop": 2, "weight_threshold": 0.50, "filter": "USER_GENERAL"},
-                {"label": "Preset 2: '5G 프리미어 슈퍼 테더링 한도랑 QoS 속도 얼마야?' (요금제 스펙/구매)", "query": "5G 프리미어 슈퍼 테더링 한도랑 QoS 속도 얼마야?", "intent": "PURCHASE_INTENT", "seed": "PF_5G_PREMIER", "max_hop": 2, "weight_threshold": 0.50, "filter": "USER_GENERAL"},
-                {"label": "Preset 3: '청년 전용 너겟 다이렉트 무약정 혜택 알려줘' (혜택 탐색)", "query": "청년 전용 너겟 다이렉트 무약정 혜택 알려줘", "intent": "INFO_SEARCH", "seed": "PF_NERGET_DIRECT", "max_hop": 2, "weight_threshold": 0.50, "filter": "USER_YOUTH"},
-                {"label": "Preset 4: '시니어 안심 5G 요금제 데이터 스펙 확인' (요금제 스펙/구매)", "query": "시니어 안심 5G 요금제 데이터 스펙 확인", "intent": "PURCHASE_INTENT", "seed": "PF_SENIOR_CARE", "max_hop": 2, "weight_threshold": 0.50, "filter": "USER_SENIOR"}
+                {"label": "Preset 1: 'OTT 무료로 볼 수 있는 5G 요금제 뭐가 있어?' (무료혜택/OTT환산)", "query": "OTT 무료로 볼 수 있는 5G 요금제 뭐가 있어?", "intent": "INFO_SEARCH", "seed": "PF_5G_PREMIER", "max_hop": 2, "weight_threshold": 0.50, "filter": "USER_GENERAL"},
+                {"label": "Preset 2: '5G 프리미어 슈퍼 테더링 한도랑 QoS 속도 얼마야?' (요금제 월정액/추가과금)", "query": "5G 프리미어 슈퍼 테더링 한도랑 QoS 속도 얼마야?", "intent": "PURCHASE_INTENT", "seed": "PF_5G_PREMIER", "max_hop": 2, "weight_threshold": 0.50, "filter": "USER_GENERAL"},
+                {"label": "Preset 3: '청년 전용 너겟 다이렉트 무약정 혜택 알려줘' (청년할인/무약정가)", "query": "청년 전용 너겟 다이렉트 무약정 혜택 알려줘", "intent": "INFO_SEARCH", "seed": "PF_NERGET_DIRECT", "max_hop": 2, "weight_threshold": 0.50, "filter": "USER_YOUTH"},
+                {"label": "Preset 4: '시니어 안심 5G 요금제 데이터 스펙 확인' (시니어 요금/보험혜택)", "query": "시니어 안심 5G 요금제 데이터 스펙 확인", "intent": "PURCHASE_INTENT", "seed": "PF_SENIOR_CARE", "max_hop": 2, "weight_threshold": 0.50, "filter": "USER_SENIOR"}
             ]
         }
 
@@ -545,21 +546,21 @@ def generate_domain_data(domain: str):
             {"id": "PF_5G_PREMIER", "name": "5G 프리미어 패밀리 (5G Premier)", "type": "PlanFamily", "desc": "데이터 완전 무제한 & 프리미엄 미디어 결합 요금제", "attributes": {"category": "5G Postpaid", "target_tier": "Premium"}},
             {"id": "PF_NERGET_DIRECT", "name": "너겟 다이렉트 (Nerget Direct)", "type": "PlanFamily", "desc": "2030 청년 맞춤형 무약정 온라인 다이렉트 요금제", "attributes": {"category": "Direct Online", "target_tier": "Value / Youth"}},
             {"id": "PF_SENIOR_CARE", "name": "시니어 안심 케어 (Senior Care)", "type": "PlanFamily", "desc": "만 65세 이상 어르신 전용 안심 케어 요금제", "attributes": {"category": "Senior Care", "target_tier": "Silver"}},
-            {"id": "PC_PREMIER_SUPER", "name": "5G 프리미어 슈퍼 (월 11.5만)", "type": "PlanCode", "desc": "완전 무제한 데이터 + 넷플릭스/디즈니+ 팩 무료", "attributes": {"fee": "115,000원", "data": "완전 무제한", "market": "USER_GENERAL"}},
-            {"id": "PC_PREMIER_PLUS", "name": "5G 프리미어 플러스 (월 10.5만)", "type": "PlanCode", "desc": "완전 무제한 데이터 + 미디어 팩 1종 무료", "attributes": {"fee": "105,000원", "data": "완전 무제한", "market": "USER_GENERAL"}},
-            {"id": "PC_NERGET_YOUTH", "name": "너겟 5G 청년 무제한 (월 5.9만)", "type": "PlanCode", "desc": "만 34세 이하 전용 데이터 무제한 무약정 요금제", "attributes": {"fee": "59,000원", "data": "무제한 (QoS 5Mbps)", "market": "USER_YOUTH"}},
-            {"id": "PC_SENIOR_5G", "name": "5G 시니어 49 (월 4.9만)", "type": "PlanCode", "desc": "기본 15GB + 소진 시 안심 1Mbps 무제한", "attributes": {"fee": "49,000원", "data": "15GB + QoS 1Mbps", "market": "USER_SENIOR"}},
+            {"id": "PC_PREMIER_SUPER", "name": "5G 프리미어 슈퍼 [월 115,000원]", "type": "PlanCode", "desc": "완전 무제한 데이터 + 넷플릭스/디즈니+ 팩 무료", "attributes": {"monthly_fee": "월 115,000원", "monthly_fee_num": 115000, "data": "완전 무제한", "market": "USER_GENERAL"}},
+            {"id": "PC_PREMIER_PLUS", "name": "5G 프리미어 플러스 [월 105,000원]", "type": "PlanCode", "desc": "완전 무제한 데이터 + 미디어 팩 1종 무료", "attributes": {"monthly_fee": "월 105,000원", "monthly_fee_num": 105000, "data": "완전 무제한", "market": "USER_GENERAL"}},
+            {"id": "PC_NERGET_YOUTH", "name": "너겟 5G 청년 무제한 [월 59,000원]", "type": "PlanCode", "desc": "만 34세 이하 전용 데이터 무제한 무약정 온라인 요금제", "attributes": {"monthly_fee": "월 59,000원", "monthly_fee_num": 59000, "data": "무제한 (QoS 5Mbps)", "market": "USER_YOUTH"}},
+            {"id": "PC_SENIOR_5G", "name": "5G 시니어 49 [월 49,000원]", "type": "PlanCode", "desc": "기본 15GB + 소진 시 안심 1Mbps 무제한", "attributes": {"monthly_fee": "월 49,000원", "monthly_fee_num": 49000, "data": "15GB + QoS 1Mbps", "market": "USER_SENIOR"}},
             {"id": "USER_GENERAL", "name": "일반 가입자 (General)", "type": "TargetUser", "desc": "만 19세 이상 일반 이동통신 가입 고객", "attributes": {"code": "USER_GENERAL", "age_limit": "None"}},
             {"id": "USER_YOUTH", "name": "청년 고객군 (Youth 만 19~34세)", "type": "TargetUser", "desc": "청년 전용 추가 데이터 및 라이프 혜택 대상", "attributes": {"code": "USER_YOUTH", "age_limit": "19-34세"}},
             {"id": "USER_SENIOR", "name": "시니어 고객군 (Senior 만 65세 이상)", "type": "TargetUser", "desc": "만 65세 이상 기초연금 수급자 추가 감면 대상", "attributes": {"code": "USER_SENIOR", "age_limit": "65세 이상"}},
-            {"id": "SPEC_DATA_UNLIMITED", "name": "기본 데이터 완전 무제한 (No Cap)", "type": "PlanSpec", "desc": "속도 제어 없는 국내 5G 완전 무제한 데이터 제공", "attributes": {"speed": "최대 1.5Gbps", "cap": "None"}},
-            {"id": "SPEC_TETHERING_50G", "name": "테더링/쉐어링 50GB 전용 한도", "type": "PlanSpec", "desc": "스마트폰 핫스팟 및 태블릿 공유 데이터 50GB 제공", "attributes": {"shared_data": "50 GB"}},
-            {"id": "SPEC_QOS_5MBPS", "name": "QoS 5Mbps 안심 무제한", "type": "PlanSpec", "desc": "기본 데이터 소진 후에도 FHD 고화질 유튜브 재생 가능한 속도 보장", "attributes": {"qos_speed": "5 Mbps"}},
-            {"id": "SPEC_SMART_DEVICE_FREE", "name": "스마트워치/패드 2회선 통신료 무료", "type": "PlanSpec", "desc": "애플워치/갤럭시워치 및 아이패드 통신요금 100% 면제", "attributes": {"device_count": "2회선"}},
-            {"id": "BENEFIT_OTT_PACK", "name": "넷플릭스 / 디즈니+ 구독팩 무료", "type": "MarketingBenefit", "desc": "월 13,500원 상당 프리미엄 OTT 구독료 100% 전액 지원", "attributes": {"value": "월 13,500원 지원"}},
-            {"id": "BENEFIT_VIP_MEMBERSHIP", "name": "VVIP 멤버십 영화 연 12회 무료", "type": "MarketingBenefit", "desc": "CGV/메가박스 영화 무료 예매권 및 VIP 라운지 혜택", "attributes": {"cinema_free": "연 12회"}},
-            {"id": "BENEFIT_FAMILY_COMBO", "name": "유무선 결합할인 최대 월 33,000원 감면", "type": "MarketingBenefit", "desc": "인터넷/IPTV 결합 시 가족 구성원 요금 대폭 할인", "attributes": {"discount_max": "33,000원"}},
-            {"id": "BENEFIT_SILVER_CARE", "name": "시니어 보이스피싱 안심 보상 보험 무료", "type": "MarketingBenefit", "desc": "금융사기 피해 시 최대 300만원 보상 및 위치조회 서비스", "attributes": {"insurance": "최대 300만원 보상"}}
+            {"id": "SPEC_DATA_UNLIMITED", "name": "데이터 완전무제한 (+테더링 50GB 공유)", "type": "PlanSpec", "desc": "속도 제어 없는 국내 5G 완전 무제한 데이터 제공", "attributes": {"speed": "최대 1.5Gbps", "extra_fee": "0원 (추가과금 없음)", "cap": "None"}},
+            {"id": "SPEC_TETHERING_50G", "name": "테더링/쉐어링 50GB (+추가요금 無)", "type": "PlanSpec", "desc": "스마트폰 핫스팟 및 태블릿 공유 데이터 50GB 제공", "attributes": {"shared_data": "50 GB", "extra_fee": "0원 (기본포함)"}},
+            {"id": "SPEC_QOS_5MBPS", "name": "기본 12GB 소진 후 5Mbps QoS (추가요금 無)", "type": "PlanSpec", "desc": "기본 데이터 소진 후에도 FHD 고화질 유튜브 재생 가능한 속도 보장", "attributes": {"qos_speed": "5 Mbps", "extra_fee": "0원 (안심제공)"}},
+            {"id": "SPEC_SMART_DEVICE_FREE", "name": "스마트기기 2회선 (+월 22,000원 무료)", "type": "PlanSpec", "desc": "애플워치/갤럭시워치 및 아이패드 통신요금 100% 면제", "attributes": {"device_count": "2회선", "extra_fee": "월 22,000원 지원"}},
+            {"id": "BENEFIT_OTT_PACK", "name": "넷플릭스 + 디즈니+ 무료팩 (월 24,000원 상당 혜택)", "type": "MarketingBenefit", "desc": "월 24,000원 상당 프리미엄 OTT 구독료 100% 전액 지원", "attributes": {"benefit_val": "월 24,000원 상당", "val_num": 24000, "ott_partner": "Netflix / Disney+"}},
+            {"id": "BENEFIT_VIP_MEMBERSHIP", "name": "VVIP 영화 연 12회 (연 180,000원 상당)", "type": "MarketingBenefit", "desc": "CGV/메가박스 영화 무료 예매권 및 VIP 라운지 혜택", "attributes": {"benefit_val": "연 180,000원 상당", "val_num": 180000, "cinema_free": "연 12회"}},
+            {"id": "BENEFIT_FAMILY_COMBO", "name": "U+ 투게더 결합할인 (회선당 최대 20,000원 할인)", "type": "MarketingBenefit", "desc": "인터넷/IPTV 결합 시 가족 구성원 요금 대폭 할인", "attributes": {"benefit_val": "최대 월 20,000원 할인", "val_num": 20000, "discount_max": "20,000원"}},
+            {"id": "BENEFIT_SILVER_CARE", "name": "보이스피싱 안심 보험 (최대 300만원 무상 보상)", "type": "MarketingBenefit", "desc": "금융사기 피해 시 최대 300만원 보상 및 위치조회 서비스", "attributes": {"benefit_val": "최대 300만원 무상보상", "val_num": 3000000, "insurance": "최대 300만원 보상"}}
         ]
 
         edges = [
@@ -596,42 +597,40 @@ def get_native_tables(domain: str) -> dict:
                 {"family_id": "FC_SANTAFE", "family_name": "싼타페 (Santa Fe)", "brand": "Hyundai", "segment": "Midsize SUV", "seats": "5/6/7인승", "origin": "KR"}
             ]),
             "dim_model_code (모델코드 마스터)": pd.DataFrame([
-                {"model_id": "MC_MQ4_KR", "family_id": "FC_SORENTO", "model_code": "MQ4", "powertrain": "2.5T / 2.2D", "market": "KR", "launch_year": 2024},
-                {"model_id": "MC_MQ4_HEV_KR", "family_id": "FC_SORENTO", "model_code": "MQ4 HEV", "powertrain": "1.6T HEV", "market": "KR", "launch_year": 2024},
-                {"model_id": "MC_MQ4_US", "family_id": "FC_SORENTO", "model_code": "MQ4a", "powertrain": "2.5T / 1.6T HEV", "market": "US", "launch_year": 2024},
-                {"model_id": "MC_MX5_KR", "family_id": "FC_SANTAFE", "model_code": "MX5", "powertrain": "2.5T", "market": "KR", "launch_year": 2024},
-                {"model_id": "MC_MX5_HEV_KR", "family_id": "FC_SANTAFE", "model_code": "MX5 HEV", "powertrain": "1.6T HEV", "market": "KR", "launch_year": 2024},
-                {"model_id": "MC_MX5_US", "family_id": "FC_SANTAFE", "model_code": "MX5a", "powertrain": "2.5T AWD", "market": "US", "launch_year": 2024}
+                {"model_id": "MC_MQ4_KR", "family_id": "FC_SORENTO", "model_code": "MQ4", "base_price": 35000000, "base_price_formatted": "3,500만원~", "powertrain": "2.5T / 2.2D", "market": "KR", "launch_year": 2024},
+                {"model_id": "MC_MQ4_HEV_KR", "family_id": "FC_SORENTO", "model_code": "MQ4 HEV", "base_price": 37800000, "base_price_formatted": "3,780만원~", "powertrain": "1.6T HEV", "market": "KR", "launch_year": 2024},
+                {"model_id": "MC_MQ4_US", "family_id": "FC_SORENTO", "model_code": "MQ4a", "base_price": 31990, "base_price_formatted": "$31,990~", "powertrain": "2.5T / 1.6T HEV", "market": "US", "launch_year": 2024},
+                {"model_id": "MC_MX5_KR", "family_id": "FC_SANTAFE", "model_code": "MX5", "base_price": 35400000, "base_price_formatted": "3,540만원~", "powertrain": "2.5T", "market": "KR", "launch_year": 2024},
+                {"model_id": "MC_MX5_HEV_KR", "family_id": "FC_SANTAFE", "model_code": "MX5 HEV", "base_price": 38800000, "base_price_formatted": "3,880만원~", "powertrain": "1.6T HEV", "market": "KR", "launch_year": 2024},
+                {"model_id": "MC_MX5_US", "family_id": "FC_SANTAFE", "model_code": "MX5a", "base_price": 33950, "base_price_formatted": "$33,950~", "powertrain": "2.5T AWD", "market": "US", "launch_year": 2024}
             ]),
             "dim_region_market (판매지역 마스터)": pd.DataFrame([
                 {"region_id": "REG_KR", "region_code": "KR", "region_name": "대한민국 내수", "currency": "KRW", "ev_subsidy": "적용", "emission_std": "K-ULEV"},
                 {"region_id": "REG_US", "region_code": "US", "region_name": "미국 북미시장", "currency": "USD", "ev_subsidy": "IRA 대상", "emission_std": "EPA Tier 3"},
                 {"region_id": "REG_SEA", "region_code": "SEA", "region_name": "동남아 아세안", "currency": "USD/Local", "ev_subsidy": "일부적용", "emission_std": "Euro 5"}
             ]),
+            "dim_spec_item (옵션/사양 마스터)": pd.DataFrame([
+                {"spec_id": "SPEC_HEV_16T", "spec_name": "1.6T HEV 전용 엔진", "option_price": "0원 (기본포함)", "category": "Powertrain", "spec_details": "245ps 합산 / 15.7km/L"},
+                {"spec_id": "SPEC_DRIVEWISE", "spec_name": "드라이브 와이즈 ADAS", "option_price": "120만원", "category": "Safety / ADAS", "spec_details": "HDA2 + 전방 충돌방지"},
+                {"spec_id": "SPEC_AWD", "spec_name": "전자식 AWD 4륜구동", "option_price": "200만원", "category": "Drivetrain", "spec_details": "터레인 모드 연동 4WD"},
+                {"spec_id": "SPEC_HUD", "spec_name": "10인치 헤드업 디스플레이", "option_price": "70만원", "category": "Convenience", "spec_details": "윈드실드 타입 고해상도 HUD"},
+                {"spec_id": "SPEC_BUILTINCAM2", "spec_name": "QHD 빌트인 캠 2", "option_price": "45만원", "category": "Electronics", "spec_details": "전후방 QHD 녹화 & 음성녹음"},
+                {"spec_id": "SPEC_GAS_25T", "spec_name": "2.5T 가솔린 AWD", "option_price": "$2,000", "category": "Powertrain", "spec_details": "281ps 스마트스트림 G2.5T"}
+            ]),
             "rel_model_region (모델-지역 매핑 테이블)": pd.DataFrame([
-                {"model_id": "MC_MQ4_KR", "region_id": "REG_KR", "is_primary_market": True, "base_price": "35,060,000 KRW", "warranty": "5년 / 10만km"},
-                {"model_id": "MC_MQ4_HEV_KR", "region_id": "REG_KR", "is_primary_market": True, "base_price": "37,860,000 KRW", "warranty": "하이브리드 10년 / 20만km"},
+                {"model_id": "MC_MQ4_KR", "region_id": "REG_KR", "is_primary_market": True, "base_price": "35,000,000 KRW", "warranty": "5년 / 10만km"},
+                {"model_id": "MC_MQ4_HEV_KR", "region_id": "REG_KR", "is_primary_market": True, "base_price": "37,800,000 KRW", "warranty": "하이브리드 10년 / 20만km"},
                 {"model_id": "MC_MQ4_US", "region_id": "REG_US", "is_primary_market": True, "base_price": "$31,990 USD", "warranty": "10-Year / 100k Miles"},
-                {"model_id": "MC_MX5_KR", "region_id": "REG_KR", "is_primary_market": True, "base_price": "35,460,000 KRW", "warranty": "5년 / 10만km"},
-                {"model_id": "MC_MX5_HEV_KR", "region_id": "REG_KR", "is_primary_market": True, "base_price": "38,880,000 KRW", "warranty": "하이브리드 10년 / 20만km"},
+                {"model_id": "MC_MX5_KR", "region_id": "REG_KR", "is_primary_market": True, "base_price": "35,400,000 KRW", "warranty": "5년 / 10만km"},
+                {"model_id": "MC_MX5_HEV_KR", "region_id": "REG_KR", "is_primary_market": True, "base_price": "38,800,000 KRW", "warranty": "하이브리드 10년 / 20만km"},
                 {"model_id": "MC_MX5_US", "region_id": "REG_US", "is_primary_market": True, "base_price": "$33,950 USD", "warranty": "10-Year / 100k Miles"}
             ]),
-            "rel_model_spec (모델-사양/옵션 매핑 테이블)": pd.DataFrame([
-                {"model_id": "MC_MQ4_HEV_KR", "spec_id": "SPEC_HEV_16T", "category": "Powertrain", "spec_details": "1.6T 터보 하이브리드 (245ps / 15.7km/L)", "weight_purchase": 0.1, "weight_info": 0.9},
-                {"model_id": "MC_MQ4_HEV_KR", "spec_id": "SPEC_AWD", "category": "Drivetrain", "spec_details": "e-AWD 전자식 4륜구동 (터레인 모드)", "weight_purchase": 0.1, "weight_info": 0.9},
-                {"model_id": "MC_MQ4_HEV_KR", "spec_id": "SPEC_DRIVEWISE", "category": "Safety / ADAS", "spec_details": "드라이브 와이즈 (HDA2 + 전방충돌방지)", "weight_purchase": 0.1, "weight_info": 0.9},
-                {"model_id": "MC_MQ4_HEV_KR", "spec_id": "SPEC_HUD", "category": "Convenience", "spec_details": "10인치 헤드업 디스플레이", "weight_purchase": 0.1, "weight_info": 0.9},
-                {"model_id": "MC_MQ4_HEV_KR", "spec_id": "SPEC_BUILTINCAM2", "category": "Electronics", "spec_details": "QHD 전후방 빌트인 캠 2", "weight_purchase": 0.1, "weight_info": 0.9},
-                {"model_id": "MC_MQ4_KR", "spec_id": "SPEC_GAS_25T", "category": "Powertrain", "spec_details": "2.5T 가솔린 터보 (281ps / 43.0kgf·m)", "weight_purchase": 0.1, "weight_info": 0.9},
-                {"model_id": "MC_MX5_HEV_KR", "spec_id": "SPEC_HEV_16T", "category": "Powertrain", "spec_details": "1.6T 터보 하이브리드 시스템", "weight_purchase": 0.1, "weight_info": 0.9},
-                {"model_id": "MC_MX5_HEV_KR", "spec_id": "SPEC_DRIVEWISE", "category": "Safety / ADAS", "spec_details": "현대 스마트센스 패키지", "weight_purchase": 0.1, "weight_info": 0.9}
-            ]),
             "rel_family_marketing (차종-마케팅/KSP 매핑 테이블)": pd.DataFrame([
-                {"family_id": "FC_SORENTO", "mkt_id": "MKT_2025_RELEASE", "ksp_title": "2025 신형 출시 일정 & 사전계약", "content": "연 2.9% 저금리 할부 & 50만원 바우처", "weight_info": 0.1, "weight_purchase": 0.9},
-                {"family_id": "FC_SORENTO", "mkt_id": "MKT_FAMILY_SPACE", "ksp_title": "동급 최고 패밀리 SUV 공간성", "content": "2,815mm 휠베이스 & 최대 2,044L 트렁크", "weight_info": 0.1, "weight_purchase": 0.9},
-                {"family_id": "FC_SORENTO", "mkt_id": "MKT_DESIGN_STARMAP", "ksp_title": "시그니처 스타맵 라이팅 디자인", "content": "수직형 DRL & 12.3인치 커브드 디스플레이", "weight_info": 0.1, "weight_purchase": 0.9},
-                {"family_id": "FC_SANTAFE", "mkt_id": "MKT_SANTAFE_HLIGHT", "ksp_title": "H-라이트 디자인 & 테라스 테일게이트", "content": "아웃도어 특화 광폭 테일게이트 설계", "weight_info": 0.1, "weight_purchase": 0.9},
-                {"family_id": "FC_SANTAFE", "mkt_id": "MKT_FAMILY_SPACE", "ksp_title": "3열 독립 시트 & 대형 실내공간", "content": "2,044L 트렁크 공간 및 평탄화 차박 지원", "weight_info": 0.1, "weight_purchase": 0.9}
+                {"family_id": "FC_SORENTO", "mkt_id": "MKT_2025_RELEASE", "ksp_title": "2025 페이스리프트 (신형 출시)", "discount_benefit": "50만원 바우처", "content": "연 2.9% 저금리 할부 & 50만원 바우처", "weight_info": 0.1, "weight_purchase": 0.9},
+                {"family_id": "FC_SORENTO", "mkt_id": "MKT_FAMILY_SPACE", "ksp_title": "동급 최고 패밀리 SUV 공간성", "discount_benefit": "2열 독립시트 무상", "content": "2,815mm 휠베이스 & 캡틴시트 무상 업그레이드", "weight_info": 0.1, "weight_purchase": 0.9},
+                {"family_id": "FC_SORENTO", "mkt_id": "MKT_DESIGN_STARMAP", "ksp_title": "시그니처 스타맵 라이팅 디자인", "discount_benefit": "30만원 할인", "content": "스타일 패키지 30만 할인 지원", "weight_info": 0.1, "weight_purchase": 0.9},
+                {"family_id": "FC_SANTAFE", "mkt_id": "MKT_SANTAFE_HLIGHT", "ksp_title": "H-라이트 디자인 & 테라스 테일게이트", "discount_benefit": "40만원 상당 지원", "content": "아웃도어 특화 패키지 40만원 지원", "weight_info": 0.1, "weight_purchase": 0.9},
+                {"family_id": "FC_SANTAFE", "mkt_id": "MKT_FAMILY_SPACE", "ksp_title": "3열 독립 시트 & 대형 실내공간", "discount_benefit": "차박 매트 증정", "content": "2,044L 트렁크 공간 및 평탄화 차박 지원", "weight_info": 0.1, "weight_purchase": 0.9}
             ])
         }
     elif "이커머스" in domain or "ecommerce" in domain.lower():
@@ -641,24 +640,23 @@ def get_native_tables(domain: str) -> dict:
                 {"category_id": "BC_CAMPING_TENT", "brand_name": "SnowPeak / Helinox", "category_name": "사계절 패밀리 캠핑 텐트/쉘터", "season": "2025 S/S", "target_sports": "Camping / Outdoor"}
             ]),
             "dim_product_sku (상품 SKU 마스터)": pd.DataFrame([
-                {"sku_id": "SKU_PEGASUS_41", "category_id": "BC_NIKE_RUNNING", "sku_code": "FD2722-100", "product_name": "에어 줌 페가수스 41", "price": 159000, "weight_g": 281, "target_segment": "SEG_BEGINNER"},
-                {"sku_id": "SKU_ALPHAFLY_3", "category_id": "BC_NIKE_RUNNING", "sku_code": "FD8311-700", "product_name": "에어 줌 알파플라이 3", "price": 329000, "weight_g": 218, "target_segment": "SEG_MARATHON"},
-                {"sku_id": "SKU_VAPORFLY_3", "category_id": "BC_NIKE_RUNNING", "sku_code": "DV4129-100", "product_name": "줌엑스 베이퍼플라이 3", "price": 299000, "weight_g": 198, "target_segment": "SEG_MARATHON"},
-                {"sku_id": "SKU_DOME_TENT_4P", "category_id": "BC_CAMPING_TENT", "sku_code": "SDE-001RH", "product_name": "어메니티 돔 4인용 텐트", "price": 498000, "capacity": "4인용", "target_segment": "SEG_BEGINNER"},
-                {"sku_id": "SKU_TUNNEL_SHELTER", "category_id": "BC_CAMPING_TENT", "sku_code": "TP-671R", "product_name": "랜드락 대형 투룸 쉘터", "price": 1980000, "capacity": "6인용", "target_segment": "SEG_MARATHON"}
+                {"sku_id": "SKU_PEGASUS_41", "category_id": "BC_NIKE_RUNNING", "sku_code": "FD2722-100", "product_name": "나이키 페가수스 41", "price": 159000, "price_formatted": "159,000원", "weight_g": 281, "target_segment": "SEG_BEGINNER"},
+                {"sku_id": "SKU_ALPHAFLY_3", "category_id": "BC_NIKE_RUNNING", "sku_code": "FD8311-700", "product_name": "에어줌 알파플라이 3", "price": 359000, "price_formatted": "359,000원", "weight_g": 218, "target_segment": "SEG_MARATHON"},
+                {"sku_id": "SKU_VAPORFLY_3", "category_id": "BC_NIKE_RUNNING", "sku_code": "DV4129-100", "product_name": "줌엑스 베이퍼플라이 3", "price": 299000, "price_formatted": "299,000원", "weight_g": 198, "target_segment": "SEG_MARATHON"},
+                {"sku_id": "SKU_DOME_TENT_4P", "category_id": "BC_CAMPING_TENT", "sku_code": "SDE-001RH", "product_name": "어메니티 돔 4인용 텐트", "price": 498000, "price_formatted": "498,000원", "capacity": "4인용", "target_segment": "SEG_BEGINNER"},
+                {"sku_id": "SKU_TUNNEL_SHELTER", "category_id": "BC_CAMPING_TENT", "sku_code": "TP-671R", "product_name": "랜드락 대형 투룸 쉘터", "price": 1980000, "price_formatted": "1,980,000원", "capacity": "6인용", "target_segment": "SEG_MARATHON"}
             ]),
-            "rel_sku_spec (상품-상세 스펙 매핑 테이블)": pd.DataFrame([
-                {"sku_id": "SKU_ALPHAFLY_3", "spec_id": "SPEC_ZOOMX_FOAM", "feature_name": "미드솔 폼", "feature_value": "ZoomX 초경량 폼 (반발력 85%)", "weight_purchase": 0.1, "weight_info": 0.9},
-                {"sku_id": "SKU_ALPHAFLY_3", "spec_id": "SPEC_CARBON_PLATE", "feature_name": "추진 플레이트", "feature_value": "풀렝스 카본 플라이플레이트", "weight_purchase": 0.1, "weight_info": 0.9},
-                {"sku_id": "SKU_PEGASUS_41", "spec_id": "SPEC_REACTX_FOAM", "feature_name": "미드솔 폼", "feature_value": "ReactX 친환경 고쿠셔닝 폼", "weight_purchase": 0.1, "weight_info": 0.9},
-                {"sku_id": "SKU_DOME_TENT_4P", "spec_id": "SPEC_WATERPROOF_3000", "feature_name": "원단 내수압", "feature_value": "내수압 3,000mm 립스탑 스킨", "weight_purchase": 0.1, "weight_info": 0.9},
-                {"sku_id": "SKU_DOME_TENT_4P", "spec_id": "SPEC_ALU_POLE", "feature_name": "프레임 폴대", "feature_value": "두랄루민 7001 고강도 알루미늄", "weight_purchase": 0.1, "weight_info": 0.9},
-                {"sku_id": "SKU_TUNNEL_SHELTER", "spec_id": "SPEC_WATERPROOF_3000", "feature_name": "원단 내수압", "feature_value": "립스탑 3,000mm 테프론 발수", "weight_purchase": 0.1, "weight_info": 0.9}
+            "dim_product_spec (상품 스펙 마스터)": pd.DataFrame([
+                {"spec_id": "SPEC_ZOOMX_FOAM", "spec_name": "ZoomX 고반발 폼", "spec_value": "기본탑재 (반발력 85%)", "option_price": "핵심 기본탑재", "category": "Midsole"},
+                {"spec_id": "SPEC_CARBON_PLATE", "spec_name": "풀렝스 카본 플라이플레이트", "spec_value": "선수용옵션 (카본 100%)", "option_price": "프리미엄 옵션", "category": "Plate"},
+                {"spec_id": "SPEC_REACTX_FOAM", "spec_name": "ReactX 친환경 폼", "spec_value": "기본탑재 (쿠셔닝 +13%)", "option_price": "친환경 기본사양", "category": "Midsole"},
+                {"spec_id": "SPEC_WATERPROOF_3000", "spec_name": "내수압 3,000mm 립스탑", "spec_value": "테프론 발수 코팅", "option_price": "고급 원단사양", "category": "Fabric"},
+                {"spec_id": "SPEC_ALU_POLE", "spec_name": "두랄루민 7001 폴대", "spec_value": "항공기용 알루미늄", "option_price": "초경량 고강도", "category": "Frame"}
             ]),
             "rel_category_promo (카테고리-프로모션 매핑 테이블)": pd.DataFrame([
-                {"category_id": "BC_NIKE_RUNNING", "promo_id": "PROMO_SPRING_20", "promo_title": "봄맞이 런페스타 20% 할인쿠폰", "discount_rate": "20% 즉시할인", "period": "2025-04-30까지", "weight_info": 0.1, "weight_purchase": 0.9},
-                {"category_id": "BC_NIKE_RUNNING", "promo_id": "PROMO_NEW_LAUNCH", "promo_title": "알파플라이 3 론칭 사은품 증정", "discount_rate": "사은품 증정 (레이싱 삭스/백)", "period": "재고 소진 시까지", "weight_info": 0.1, "weight_purchase": 0.9},
-                {"category_id": "BC_CAMPING_TENT", "promo_id": "PROMO_OUTDOOR_FEST", "promo_title": "아웃도어 페스타 그라운드시트 증정", "discount_rate": "12만원 상당 그라운드시트", "period": "2025-05-31까지", "weight_info": 0.1, "weight_purchase": 0.9}
+                {"category_id": "BC_NIKE_RUNNING", "promo_id": "PROMO_SPRING_20", "promo_title": "봄맞이 시즌오프 기획전", "discount_rate": "20% 할인 쿠폰", "discount_val": "최대 7만원 할인", "period": "2025-04-30까지", "weight_info": 0.1, "weight_purchase": 0.9},
+                {"category_id": "BC_NIKE_RUNNING", "promo_id": "PROMO_NEW_LAUNCH", "promo_title": "신규 런칭 기념 프로모션", "discount_rate": "사은품 증정 + 1만원 할인", "discount_val": "10,000원 할인", "period": "재고 소진 시까지", "weight_info": 0.1, "weight_purchase": 0.9},
+                {"category_id": "BC_CAMPING_TENT", "promo_id": "PROMO_OUTDOOR_FEST", "promo_title": "아웃도어 페스타 증정 행사", "discount_rate": "그라운드시트 증정", "discount_val": "120,000원 상당 증정", "period": "2025-05-31까지", "weight_info": 0.1, "weight_purchase": 0.9}
             ])
         }
     else:
@@ -669,23 +667,22 @@ def get_native_tables(domain: str) -> dict:
                 {"family_id": "PF_SENIOR_CARE", "family_name": "시니어 안심 케어", "network_type": "5G Silver Care", "target_tier": "Silver", "voice_sms": "기본 무제한"}
             ]),
             "dim_plan_code (요금제 코드 마스터)": pd.DataFrame([
-                {"plan_id": "PC_PREMIER_SUPER", "family_id": "PF_5G_PREMIER", "plan_code": "PLAN_5G_PSUPER", "plan_name": "5G 프리미어 슈퍼", "monthly_fee": 115000, "target_user": "USER_GENERAL"},
-                {"plan_id": "PC_PREMIER_PLUS", "family_id": "PF_5G_PREMIER", "plan_code": "PLAN_5G_PPLUS", "plan_name": "5G 프리미어 플러스", "monthly_fee": 105000, "target_user": "USER_GENERAL"},
-                {"plan_id": "PC_NERGET_YOUTH", "family_id": "PF_NERGET_DIRECT", "plan_code": "PLAN_NERGET_YOUTH", "plan_name": "너겟 5G 청년 무제한", "monthly_fee": 59000, "target_user": "USER_YOUTH"},
-                {"plan_id": "PC_SENIOR_5G", "family_id": "PF_SENIOR_CARE", "plan_code": "PLAN_SENIOR_49", "plan_name": "5G 시니어 49", "monthly_fee": 49000, "target_user": "USER_SENIOR"}
+                {"plan_id": "PC_PREMIER_SUPER", "family_id": "PF_5G_PREMIER", "plan_code": "PLAN_5G_PSUPER", "plan_name": "5G 프리미어 슈퍼", "monthly_fee": 115000, "monthly_fee_formatted": "월 115,000원", "target_user": "USER_GENERAL"},
+                {"plan_id": "PC_PREMIER_PLUS", "family_id": "PF_5G_PREMIER", "plan_code": "PLAN_5G_PPLUS", "plan_name": "5G 프리미어 플러스", "monthly_fee": 105000, "monthly_fee_formatted": "월 105,000원", "target_user": "USER_GENERAL"},
+                {"plan_id": "PC_NERGET_YOUTH", "family_id": "PF_NERGET_DIRECT", "plan_code": "PLAN_NERGET_YOUTH", "plan_name": "너겟 5G 청년 무제한", "monthly_fee": 59000, "monthly_fee_formatted": "월 59,000원", "target_user": "USER_YOUTH"},
+                {"plan_id": "PC_SENIOR_5G", "family_id": "PF_SENIOR_CARE", "plan_code": "PLAN_SENIOR_49", "plan_name": "5G 시니어 49", "monthly_fee": 49000, "monthly_fee_formatted": "월 49,000원", "target_user": "USER_SENIOR"}
             ]),
-            "rel_plan_spec (요금제-데이터/QoS 스펙 매핑 테이블)": pd.DataFrame([
-                {"plan_id": "PC_PREMIER_SUPER", "spec_id": "SPEC_DATA_UNLIMITED", "data_allowance": "완전 무제한 (No Cap)", "qos_speed": "속도 제한 없음 (최대 1.5Gbps)", "tethering_limit": "50 GB 별도제공", "smart_device": "2회선 무료", "weight_purchase": 0.1, "weight_info": 0.9},
-                {"plan_id": "PC_PREMIER_SUPER", "spec_id": "SPEC_TETHERING_50G", "data_allowance": "테더링 50GB", "qos_speed": "소진 시 5Mbps", "tethering_limit": "50 GB", "smart_device": "해당 없음", "weight_purchase": 0.1, "weight_info": 0.9},
-                {"plan_id": "PC_PREMIER_PLUS", "spec_id": "SPEC_DATA_UNLIMITED", "data_allowance": "완전 무제한", "qos_speed": "속도 제한 없음", "tethering_limit": "30 GB", "smart_device": "1회선 무료", "weight_purchase": 0.1, "weight_info": 0.9},
-                {"plan_id": "PC_NERGET_YOUTH", "spec_id": "SPEC_QOS_5MBPS", "data_allowance": "무약정 무제한", "qos_speed": "5 Mbps 안심 무제한 (FHD 가능)", "tethering_limit": "15 GB", "smart_device": "해당 없음", "weight_purchase": 0.1, "weight_info": 0.9},
-                {"plan_id": "PC_SENIOR_5G", "spec_id": "SPEC_QOS_5MBPS", "data_allowance": "기본 15GB", "qos_speed": "1 Mbps 안심 무제한", "tethering_limit": "기본 제공량 내 공유", "smart_device": "해당 없음", "weight_purchase": 0.1, "weight_info": 0.9}
+            "dim_plan_spec (요금제 스펙 마스터)": pd.DataFrame([
+                {"spec_id": "SPEC_DATA_UNLIMITED", "spec_name": "데이터 완전무제한", "extra_fee": "0원 (무제한)", "data_allowance": "완전 무제한 (No Cap)", "qos_speed": "속도 제한 없음"},
+                {"spec_id": "SPEC_TETHERING_50G", "spec_name": "테더링/쉐어링 50GB", "extra_fee": "0원 (기본제공)", "data_allowance": "50 GB 별도제공", "qos_speed": "소진 시 5Mbps"},
+                {"spec_id": "SPEC_QOS_5MBPS", "spec_name": "기본 소진 후 5Mbps QoS", "extra_fee": "0원 (추가과금 無)", "data_allowance": "12GB 기본", "qos_speed": "5 Mbps 안심 무제한 (FHD 가능)"},
+                {"spec_id": "SPEC_SMART_DEVICE_FREE", "spec_name": "스마트기기 2회선 무료", "extra_fee": "월 22,000원 지원", "data_allowance": "스마트워치/패드 2회선", "qos_speed": "본회선 공유"}
             ]),
             "rel_plan_benefit (요금제-부가 혜택/멤버십 매핑 테이블)": pd.DataFrame([
-                {"plan_id": "PF_5G_PREMIER", "benefit_id": "BENEFIT_OTT_PACK", "benefit_name": "넷플릭스 / 디즈니+ 구독팩 무료", "ott_partner": "Netflix / Disney+", "monthly_value": "월 13,500원 전액 지원", "weight_info": 0.1, "weight_purchase": 0.9},
-                {"plan_id": "PF_5G_PREMIER", "benefit_id": "BENEFIT_VIP_MEMBERSHIP", "benefit_name": "VVIP 영화 연 12회 무료 예매권", "ott_partner": "CGV / Megabox", "monthly_value": "연 180,000원 상당", "weight_info": 0.1, "weight_purchase": 0.9},
-                {"plan_id": "PF_5G_PREMIER", "benefit_id": "BENEFIT_FAMILY_COMBO", "benefit_name": "가족 유무선 결합할인", "ott_partner": "인터넷/IPTV 결합", "monthly_value": "최대 월 33,000원 할인", "weight_info": 0.1, "weight_purchase": 0.9},
-                {"plan_id": "PF_SENIOR_CARE", "benefit_id": "BENEFIT_SILVER_CARE", "benefit_name": "보이스피싱 안심 보상 보험 무료", "ott_partner": "KB손해보험", "monthly_value": "최대 300만원 보상", "weight_info": 0.1, "weight_purchase": 0.9}
+                {"plan_id": "PF_5G_PREMIER", "benefit_id": "BENEFIT_OTT_PACK", "benefit_name": "넷플릭스 + 디즈니+ 무료팩", "monthly_value": "월 24,000원 상당 혜택", "ott_partner": "Netflix / Disney+", "weight_info": 0.1, "weight_purchase": 0.9},
+                {"plan_id": "PF_5G_PREMIER", "benefit_id": "BENEFIT_VIP_MEMBERSHIP", "benefit_name": "VVIP 영화 연 12회 무료", "monthly_value": "연 180,000원 상당", "ott_partner": "CGV / Megabox", "weight_info": 0.1, "weight_purchase": 0.9},
+                {"plan_id": "PF_5G_PREMIER", "benefit_id": "BENEFIT_FAMILY_COMBO", "benefit_name": "U+ 투게더 결합할인", "monthly_value": "회선당 최대 20,000원 할인", "ott_partner": "가족 결합", "weight_info": 0.1, "weight_purchase": 0.9},
+                {"plan_id": "PF_SENIOR_CARE", "benefit_id": "BENEFIT_SILVER_CARE", "benefit_name": "보이스피싱 안심 보험", "monthly_value": "최대 300만원 무상 보상", "ott_partner": "KB손해보험", "weight_info": 0.1, "weight_purchase": 0.9}
             ])
         }
 
@@ -830,11 +827,13 @@ def explore_subgraph(nodes, edges, seed_node_id: str, intent: str, max_hop: int,
 def generate_bigquery_gql(seed_node_id: str, intent: str, max_hop: int, weight_threshold: float, filter_val: str, node_dict: dict, domain_meta: dict) -> tuple:
     """
     도메인 및 의도에 따라 BigQuery GQL 표준 쿼리문 및 GRAPH_TABLE 멀티홉 서브그래프 쿼리를 생성합니다.
+    (가격, 옵션가, 할인액 필드를 RETURN 절에 명시)
     """
     seed_node = node_dict.get(seed_node_id, {})
     seed_name = seed_node.get("name", "SeedEntity")
     seed_type = seed_node.get("type", domain_meta["parent_type"])
     dataset = domain_meta["bq_dataset"]
+    domain_id = domain_meta["id"]
 
     rel_mkt = domain_meta["rel_mkt"]
     rel_spec = domain_meta["rel_spec"]
@@ -847,35 +846,75 @@ def generate_bigquery_gql(seed_node_id: str, intent: str, max_hop: int, weight_t
     filter_clause_gql = f"\n  AND (target.market = '{filter_val}' OR target.code = '{filter_val}')" if filter_val != "ALL" else ""
     filter_clause_gtable = f"\n        AND (target:{filter_type}.code = '{filter_val}' OR EXISTS {{ (target)-[:{domain_meta['rel_filter']}]->(:{filter_type} {{code: '{filter_val}'}}) }})" if filter_val != "ALL" else ""
 
+    if domain_id == "automotive":
+        if intent == "INFO_SEARCH":
+            return_clause = """RETURN 
+    p.name AS primary_entity,
+    m.name AS marketing_title,
+    m.discount AS promo_discount,
+    m.desc AS benefit_details,
+    e.weight AS relevance_cost"""
+        else:
+            return_clause = """RETURN 
+    p.name AS primary_entity,
+    c.name AS model_variant,
+    c.base_price AS start_price,
+    s.name AS spec_item,
+    s.option_price AS add_on_price,
+    e.weight AS option_priority_cost"""
+    elif domain_id == "ecommerce":
+        if intent == "INFO_SEARCH":
+            return_clause = """RETURN 
+    p.name AS primary_category,
+    m.name AS promotion_title,
+    m.discount_rate AS discount_pct,
+    m.desc AS promo_details,
+    e.weight AS relevance_cost"""
+        else:
+            return_clause = """RETURN 
+    p.name AS primary_category,
+    c.name AS product_sku,
+    c.price AS retail_price,
+    s.name AS spec_feature,
+    s.option_price AS spec_grade,
+    e.weight AS option_priority_cost"""
+    else:
+        if intent == "INFO_SEARCH":
+            return_clause = """RETURN 
+    p.name AS primary_family,
+    m.name AS benefit_title,
+    m.benefit_val AS monthly_benefit_krw,
+    m.desc AS benefit_details,
+    e.weight AS relevance_cost"""
+        else:
+            return_clause = """RETURN 
+    p.name AS primary_family,
+    c.name AS plan_code,
+    c.monthly_fee AS monthly_cost_krw,
+    s.name AS spec_allowance,
+    s.extra_fee AS extra_overage_cost,
+    e.weight AS option_priority_cost"""
+
     if intent == "INFO_SEARCH":
         gql_standard = f"""-- =========================================================================
 -- Google Cloud BigQuery GQL: [{domain_meta['name']}] 정보 탐색 의도 (INFO_SEARCH)
--- 목적: {mkt_type} 프로모션 및 마케팅 소구점({rel_mkt}) 우선 추출
+-- 목적: {mkt_type} 프로모션 및 마케팅 소구점({rel_mkt}) 우선 추출 (할인/혜택가 포함)
 -- =========================================================================
 GRAPH `{dataset}`
 MATCH (p:{seed_type} {{name: '{seed_name}'}})-[e:{rel_mkt}]->(m:{mkt_type})
 WHERE e.weight <= {weight_threshold:.2f}{filter_clause_gql}
-RETURN 
-    p.name AS primary_entity,
-    m.name AS marketing_title,
-    m.desc AS benefit_details,
-    e.weight AS relevance_cost
+{return_clause}
 ORDER BY 
     relevance_cost ASC;"""
     else:
         gql_standard = f"""-- =========================================================================
 -- Google Cloud BigQuery GQL: [{domain_meta['name']}] 실구매 상담 의도 (PURCHASE_INTENT)
--- 목적: 세부 SKU/코드별 사양 및 옵션({rel_spec}) 정밀 추출
+-- 목적: 세부 SKU/코드별 출고가 및 옵션가({rel_spec}) 정밀 추출
 -- =========================================================================
 GRAPH `{dataset}`
 MATCH (p:{seed_type} {{name: '{seed_name}'}})<-[:{rel_belongs}]-(c:{child_type})-[e:{rel_spec}]->(s:{spec_type})
 WHERE e.weight <= {weight_threshold:.2f}{filter_clause_gql}
-RETURN 
-    p.name AS primary_entity,
-    c.name AS sub_variant,
-    s.name AS specification_item,
-    s.desc AS spec_details,
-    e.weight AS option_priority_cost
+{return_clause}
 ORDER BY 
     option_priority_cost ASC;"""
 
@@ -934,7 +973,7 @@ CREATE OR REPLACE PROPERTY GRAPH `gcp-project-auto-kg.vehicle_ontology.car_knowl
     dim_model_code 
       KEY (model_id) 
       LABEL ModelCode 
-      PROPERTIES (model_code, powertrain, market, launch_year),
+      PROPERTIES (model_code, powertrain, base_price, base_price_formatted, market, launch_year),
     dim_region_market 
       KEY (region_id) 
       LABEL Region 
@@ -942,11 +981,11 @@ CREATE OR REPLACE PROPERTY GRAPH `gcp-project-auto-kg.vehicle_ontology.car_knowl
     dim_spec_item 
       KEY (spec_id) 
       LABEL SpecItem 
-      PROPERTIES (category, spec_details),
+      PROPERTIES (spec_name, category, option_price, spec_details),
     dim_marketing_info 
       KEY (mkt_id) 
       LABEL MarketingInfo 
-      PROPERTIES (ksp_title, content)
+      PROPERTIES (ksp_title, discount_benefit, content)
   )
   EDGE TABLES (
     dim_model_code AS rel_model_family 
@@ -958,20 +997,20 @@ CREATE OR REPLACE PROPERTY GRAPH `gcp-project-auto-kg.vehicle_ontology.car_knowl
       KEY (model_id, region_id)
       SOURCE KEY (model_id) REFERENCES dim_model_code(model_id)
       DESTINATION KEY (region_id) REFERENCES dim_region_market(region_id)
-      LABEL SOLD_IN 
+      LABEL AVAILABLE_IN 
       PROPERTIES (weight_purchase, weight_info, is_primary_market, base_price),
     rel_model_spec 
       KEY (model_id, spec_id)
       SOURCE KEY (model_id) REFERENCES dim_model_code(model_id)
       DESTINATION KEY (spec_id) REFERENCES dim_spec_item(spec_id)
       LABEL APPLIES_SPEC 
-      PROPERTIES (weight_purchase, weight_info),
+      PROPERTIES (weight_purchase, weight_info, option_price),
     rel_family_marketing 
       KEY (family_id, mkt_id)
       SOURCE KEY (family_id) REFERENCES dim_family_car(family_id)
       DESTINATION KEY (mkt_id) REFERENCES dim_marketing_info(mkt_id)
       LABEL HAS_KSP 
-      PROPERTIES (weight_info, weight_purchase)
+      PROPERTIES (weight_info, weight_purchase, discount_benefit)
   );"""
 
     elif "이커머스" in domain or "ecommerce" in domain.lower():
@@ -988,7 +1027,7 @@ CREATE OR REPLACE PROPERTY GRAPH `gcp-project-ecommerce.catalog_ontology.product
     dim_product_sku 
       KEY (sku_id) 
       LABEL ProductSKU 
-      PROPERTIES (sku_code, product_name, price, weight_g),
+      PROPERTIES (sku_code, product_name, price, price_formatted, weight_g, target_segment),
     dim_target_segment 
       KEY (segment_id) 
       LABEL TargetSegment 
@@ -996,11 +1035,11 @@ CREATE OR REPLACE PROPERTY GRAPH `gcp-project-ecommerce.catalog_ontology.product
     dim_product_spec 
       KEY (spec_id) 
       LABEL ProductSpec 
-      PROPERTIES (feature_category, spec_details),
+      PROPERTIES (spec_name, feature_category, spec_value, option_price),
     dim_promo_event 
       KEY (promo_id) 
       LABEL PromoEvent 
-      PROPERTIES (promo_title, discount_rate, period)
+      PROPERTIES (promo_title, discount_rate, discount_val, period)
   )
   EDGE TABLES (
     dim_product_sku AS rel_sku_category 
@@ -1018,13 +1057,13 @@ CREATE OR REPLACE PROPERTY GRAPH `gcp-project-ecommerce.catalog_ontology.product
       SOURCE KEY (sku_id) REFERENCES dim_product_sku(sku_id)
       DESTINATION KEY (spec_id) REFERENCES dim_product_spec(spec_id)
       LABEL APPLIES_SPEC 
-      PROPERTIES (weight_purchase, weight_info),
+      PROPERTIES (weight_purchase, weight_info, option_price),
     rel_category_promo 
       KEY (category_id, promo_id)
       SOURCE KEY (category_id) REFERENCES dim_brand_category(category_id)
       DESTINATION KEY (promo_id) REFERENCES dim_promo_event(promo_id)
       LABEL HAS_PROMO 
-      PROPERTIES (weight_info, weight_purchase)
+      PROPERTIES (weight_info, weight_purchase, discount_rate)
   );"""
 
     else:
@@ -1041,7 +1080,7 @@ CREATE OR REPLACE PROPERTY GRAPH `gcp-project-telco.plan_ontology.telco_plan_sem
     dim_plan_code 
       KEY (plan_id) 
       LABEL PlanCode 
-      PROPERTIES (plan_code, plan_name, monthly_fee),
+      PROPERTIES (plan_code, plan_name, monthly_fee, monthly_fee_formatted, target_user),
     dim_target_user 
       KEY (user_id) 
       LABEL TargetUser 
@@ -1049,11 +1088,11 @@ CREATE OR REPLACE PROPERTY GRAPH `gcp-project-telco.plan_ontology.telco_plan_sem
     dim_plan_spec 
       KEY (spec_id) 
       LABEL PlanSpec 
-      PROPERTIES (data_allowance, qos_speed, tethering_limit),
+      PROPERTIES (spec_name, data_allowance, qos_speed, extra_fee, tethering_limit),
     dim_marketing_benefit 
       KEY (benefit_id) 
       LABEL MarketingBenefit 
-      PROPERTIES (benefit_name, ott_partner, monthly_value)
+      PROPERTIES (benefit_name, monthly_value, ott_partner)
   )
   EDGE TABLES (
     dim_plan_code AS rel_plan_family 
@@ -1071,13 +1110,13 @@ CREATE OR REPLACE PROPERTY GRAPH `gcp-project-telco.plan_ontology.telco_plan_sem
       SOURCE KEY (plan_id) REFERENCES dim_plan_code(plan_id)
       DESTINATION KEY (spec_id) REFERENCES dim_plan_spec(spec_id)
       LABEL APPLIES_PLAN_SPEC 
-      PROPERTIES (weight_purchase, weight_info),
+      PROPERTIES (weight_purchase, weight_info, extra_fee),
     rel_plan_benefit 
       KEY (plan_id, benefit_id)
       SOURCE KEY (plan_id) REFERENCES dim_plan_code(plan_id)
       DESTINATION KEY (benefit_id) REFERENCES dim_marketing_benefit(benefit_id)
       LABEL HAS_BENEFIT 
-      PROPERTIES (weight_info, weight_purchase)
+      PROPERTIES (weight_info, weight_purchase, monthly_value)
   );"""
 
 
@@ -1131,47 +1170,52 @@ def build_llm_context_and_response(intent: str, seed_node_id: str, active_nodes:
         }
     }
 
-    # 도메인별 LLM 응답 시뮬레이션
+    # 도메인별 LLM 응답 시뮬레이션 (가격 및 비용 정보 포함)
     if domain_id == "automotive":
         if intent == "INFO_SEARCH":
-            llm_text = f"""### 📢 [소렌토/싼타페 마케팅 & 신차 정보 안내]
-고객님께서 문의하신 최신 프로모션 및 USP 하이라이트입니다:
-1. **2025 신형 출시 & 사전계약 혜택**: 연 2.9% 저금리 할부 및 50만원 상당의 얼리버드 바우처 제공.
-2. **스타맵 라이팅 & 시그니처 디자인**: 첨단 수직형 DRL과 12.3인치 파노라믹 커브드 디스플레이 적용.
-3. **친환경 하이브리드 세제 혜택**: 복합 15.7km/L 연비 및 개별소비세/취득세 최대 143만원 감면."""
+            llm_text = f"""### 📢 [소렌토/싼타페 마케팅 & 신차 프로모션 견적 안내]
+고객님께서 문의하신 최신 프로모션 및 할인 혜택 하이라이트입니다:
+1. **2025 신형 출시 & 사전계약 혜택**: 연 2.9% 저금리 할부 및 **50만원 바우처 지원** (사전예약 특전).
+2. **스타맵 라이팅 & 스타일 패키지**: 첨단 수직형 DRL 스타일 패키지 선택 시 **30만원 할인 지원**.
+3. **친환경 하이브리드 세제 혜택**: 복합 15.7km/L 연비 및 **개별소비세/취득세 최대 143만원 감면**."""
         else:
-            llm_text = f"""### 🛒 [소렌토/싼타페 최적 사양 & 옵션 추천]
-구매 의도에 맞춰 지식 그래프 온톨로지 기반으로 필터링된 핵심 사양입니다:
-1. **추천 파워트레인**: **1.6T 터보 하이브리드(MQ4 HEV / MX5 HEV)** - 245마력 시스템 출력과 뛰어난 경제성.
-2. **필수 옵션 패키지**: **드라이브 와이즈(HDA2)** 고속도로 주행 보조, **HUD**, **전자식 AWD(터레인 모드)** 및 **빌트인 캠 2(QHD)**."""
+            llm_text = f"""### 🛒 [소렌토/싼타페 트림별 출고가 및 추천 옵션 견적]
+구매 의도에 맞춰 지식 그래프 온톨로지 기반으로 필터링된 출고가 및 패키지 견적입니다:
+1. **추천 모델 및 기본 출고가**:
+   - **MQ4 HEV 하이브리드 [3,780만원~]** / **MX5 HEV 하이브리드 [3,880만원~]**
+2. **필수 추천 옵션 패키지 및 추가 비용**:
+   - **1.6T HEV 전용 엔진 (+기본포함)**
+   - **드라이브 와이즈 ADAS (+120만원)**: HDA2 고속도로 주행 보조 패키지
+   - **전자식 AWD 4륜구동 (+200만원)**: 터레인 모드 연동 4WD
+   - **10인치 헤드업 디스플레이 (+70만원)** / **QHD 빌트인 캠 2 (+45만원)**"""
 
     elif domain_id == "ecommerce":
         if intent == "INFO_SEARCH":
-            llm_text = f"""### 🛍️ [이커머스 러닝/캠핑 시즌 기획전 & 프로모션 안내]
-문의하신 카테고리의 최신 할인 혜택 및 기획전 정보입니다:
-1. **봄맞이 런페스타 20% 할인 쿠폰**: 신학기 시즌 오픈 전상품 20% 즉시 할인 및 멤버십 추가 적립.
-2. **알파플라이 3 론칭 스페셜 기프트**: 레이싱화 구매 시 드라이핏 레이싱 삭스 및 전용 슈즈백 증정.
-3. **아웃도어 페스타 그라운드시트 증정**: 텐트/쉘터 구매 고객 대상 12만원 상당 방수 그라운드시트 무료 제공."""
+            llm_text = f"""### 🛍️ [이커머스 러닝/캠핑 기획전 및 할인 쿠폰 안내]
+문의하신 카테고리의 최신 할인 쿠폰 및 사은품 혜택 정보입니다:
+1. **봄맞이 시즌오프 기획전 (20% 할인 쿠폰)**: 전 상품 20% 즉시 할인 (최대 7만원 할인 한도).
+2. **신규 런칭 기념 프로모션**: 알파플라이 3 론칭 기념 **드라이핏 레이싱 삭스 증정 + 1만원 추가 할인**.
+3. **아웃도어 페스타 증정 행사**: 패밀리 텐트/쉘터 구매 고객 대상 **12만원 상당 방수 그라운드시트 무료 증정**."""
         else:
-            llm_text = f"""### 👟 [러닝화 & 캠핑 장비 정밀 스펙/소재 비교]
-고객님의 퍼포먼스 및 용도에 맞춘 온톨로지 기반 제품 스펙 분석입니다:
-1. **에어 줌 알파플라이 3 (마라톤 레이서)**: **ZoomX 초경량 폼(반발력 85%)** + **풀렝스 카본 플라이플레이트**로 기록 단축 최적화 (무게 218g).
-2. **에어 줌 페가수스 41 (데일리 트레이너)**: **ReactX 고내구성 쿠셔닝 폼** 탑재로 편안하고 안정적인 일상 러닝 지원.
-3. **캠핑 텐트/쉘터**: **내수압 3,000mm 립스탑 스킨** 및 **두랄루민 7001 고강도 알루미늄 폴대** 적용 사계절 안심 사용."""
+            llm_text = f"""### 👟 [러닝화 & 캠핑 장비 정가 및 스펙 가치 비교]
+고객님의 퍼포먼스 및 용도에 맞춘 온톨로지 기반 정가 및 사양 분석입니다:
+1. **에어줌 알파플라이 3 [359,000원]**: **ZoomX 고반발 폼 (+핵심 사양)** + **풀렝스 카본 플라이플레이트 (+프리미엄)** 탑재 (218g).
+2. **나이키 페가수스 41 [159,000원]**: **ReactX 쿠셔닝 폼 (+친환경 에코)** 탑재로 일상 러닝 데일리 트레이너 추천.
+3. **어메니티 돔 4인용 텐트 [498,000원]**: **내수압 3,000mm 립스탑 (+고내수압 원단)** + **두랄루민 7001 폴대 (+초경량)** 기본 적용."""
 
     else:
         if intent == "INFO_SEARCH":
-            llm_text = f"""### 📱 [모바일 5G 요금제 부가 혜택 & 멤버십 안내]
-고객님께 적합한 5G 요금제 패밀리 혜택 안내입니다:
-1. **프리미엄 OTT 구독팩 무료**: **5G 프리미어 슈퍼** 가입 시 월 13,500원 상당 넷플릭스/디즈니+ 팩 100% 무료 지원.
-2. **VVIP 영화 무료 멤버십**: CGV/메가박스 연 12회 무료 영화 예매권 및 VIP 라운지 혜택.
-3. **가족 유무선 결합 할인**: 인터넷/IPTV 결합 시 가구당 최대 월 33,000원 추가 통신요금 감면."""
+            llm_text = f"""### 📱 [모바일 5G 요금제 부가 혜택 & 멤버십 가치 환산]
+고객님께 적합한 5G 요금제 무료 혜택 및 연간 환산 가치입니다:
+1. **넷플릭스 + 디즈니+ 무료팩**: **5G 프리미어 슈퍼 [월 115,000원]** 가입 시 **월 24,000원 상당 OTT 구독료 100% 무료 지원**.
+2. **VVIP 영화 무료 멤버십**: CGV/메가박스 영화 연 12회 무료 예매권 (**연 180,000원 상당 혜택**).
+3. **U+ 투게더 결합할인**: 가족 결합 시 **회선당 최대 20,000원 월정액 추가 감면**."""
         else:
-            llm_text = f"""### ⚡ [5G 요금제 데이터 스펙 & QoS 속도 분석]
-실구매 및 요금제 변경을 위한 상세 스펙 분석입니다:
-1. **5G 프리미어 슈퍼 (월 11.5만)**: 속도 제한 없는 **국내 5G 데이터 완전 무제한** + **테더링/쉐어링 전용 50GB** + 스마트기기 2회선 통신료 무료.
-2. **너겟 5G 청년 무제한 (월 5.9만)**: 만 34세 이하 전용 무약정 온라인 요금제, 기본 소진 후에도 **QoS 5Mbps(FHD 유튜브 스트리밍 가능)** 안심 무제한 제공.
-3. **시니어 안심 케어 (월 4.9만)**: 어르신 전용 15GB + 보이스피싱 안심 보상 보험(최대 300만원) 무료 제공."""
+            llm_text = f"""### ⚡ [5G 요금제 월정액 & 초과 과금 상세 스펙 분석]
+실구매 및 요금제 변경을 위한 상세 월 요금 및 데이터 스펙 분석입니다:
+1. **5G 프리미어 슈퍼 [월 115,000원]**: **데이터 완전무제한 (+테더링 50GB 공유, 추가과금 0원)** + **스마트기기 2회선 (+월 22,000원 무료)**.
+2. **너겟 5G 청년 무제한 [월 59,000원]**: 만 34세 이하 무약정 온라인 요금제, 기본 12GB 소진 후에도 **5Mbps QoS (추가요금 無, FHD 유튜브 가능)**.
+3. **5G 시니어 49 [월 49,000원]**: 만 65세 이상 어르신 전용, 기본 15GB + **보이스피싱 안심 보험 (최대 300만원 무상 보상)** 무료."""
 
     return context_payload, llm_text, extracted_specs, extracted_mkt, extracted_children
 
