@@ -1661,8 +1661,443 @@ def render_cytoscape_network(nodes, all_evaluated_edges, active_nodes: dict, see
     return cytoscape_html
 
 
+# =========================================================
+# 7. 그래프 렌더러 3: 3D Force Graph (WebGL 3차원 우주 궤도 뷰)
+# =========================================================
+def render_3d_force_network(nodes, all_evaluated_edges, active_nodes: dict, seed_node_id: str, node_dict: dict, theme: dict, domain_meta: dict) -> str:
+    """
+    선택된 IDE 테마 팔레트가 완벽하게 적용된 3D Force-Directed WebGL 우주 궤도 뷰 HTML을 생성합니다.
+    """
+    is_dark = theme.get("is_dark", True)
+    graph_bg = theme.get("graph_bg", theme["bg"])
+    card_bg = theme["card_bg"]
+    border_color = theme["border"]
+    text_color = theme["text"]
+    node_colors = get_theme_node_color_map(theme, domain_meta)
+
+    parent_type = domain_meta["parent_type"]
+    child_type = domain_meta["child_type"]
+    rel_mkt = domain_meta["rel_mkt"]
+    rel_spec = domain_meta["rel_spec"]
+    rel_belongs = domain_meta["rel_belongs"]
+
+    g_nodes = []
+    for node in nodes:
+        nid = node["id"]
+        ntype = node["type"]
+        nname = node["name"]
+        is_active = nid in active_nodes
+        is_seed = (nid == seed_node_id)
+        active_meta = active_nodes.get(nid, {})
+
+        node_tooltip = create_node_plain_tooltip(node, is_active, is_seed, active_meta)
+        node_color = node_colors.get(ntype, "#64748B")
+
+        g_nodes.append({
+            "id": nid,
+            "name": nname,
+            "type": ntype,
+            "is_active": is_active,
+            "is_seed": is_seed,
+            "color": "#FFD700" if is_seed else (node_color if is_active else f"{border_color}88"),
+            "radius": 9.5 if is_seed else (7.0 if ntype in [parent_type, child_type] and is_active else (5.5 if is_active else 3.5)),
+            "opacity": 1.0 if is_active else 0.28,
+            "val": 15 if is_seed else (10 if is_active else 4),
+            "tooltip": node_tooltip
+        })
+
+    g_links = []
+    for idx, edge in enumerate(all_evaluated_edges):
+        s = edge["source"]
+        t = edge["target"]
+        rel = edge["relation"]
+        w = edge["dynamic_weight"]
+        is_active = edge.get("is_active", False)
+
+        s_name = node_dict.get(s, {}).get("name", s)
+        t_name = node_dict.get(t, {}).get("name", t)
+        edge_tooltip = create_edge_plain_tooltip(edge, is_active, s_name, t_name)
+
+        if rel == rel_mkt:
+            edge_color = node_colors.get(domain_meta["mkt_type"], "#C084FC")
+        elif rel == rel_spec:
+            edge_color = node_colors.get(domain_meta["spec_type"], "#4ADE80")
+        elif rel == rel_belongs:
+            edge_color = node_colors.get(domain_meta["parent_type"], "#60A5FA")
+        else:
+            edge_color = node_colors.get(domain_meta["filter_type"], "#22D3EE")
+
+        g_links.append({
+            "source": s,
+            "target": t,
+            "relation": rel,
+            "weight": w,
+            "is_active": is_active,
+            "color": edge_color if is_active else f"{border_color}33",
+            "width": 2.4 if is_active else 0.6,
+            "particles": 4 if is_active else 0,
+            "particleSpeed": 0.01 if is_active else 0,
+            "particleWidth": 2.5 if is_active else 0,
+            "particleColor": edge_color if is_active else "#666666",
+            "tooltip": edge_tooltip
+        })
+
+    g_data_json = json.dumps({"nodes": g_nodes, "links": g_links}, ensure_ascii=False)
+    node_label_color = "#FFFFFF" if is_dark else "#0F172A"
+
+    force_3d_html = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <script src="https://cdn.jsdelivr.net/npm/3d-force-graph@1.73.3/dist/3d-force-graph.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three-spritetext@1.8.2/dist/three-spritetext.min.js"></script>
+    <style>
+        body, html {{
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: {graph_bg};
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }}
+        #3d-graph {{
+            width: 100%;
+            height: 680px;
+        }}
+        .scene-tooltip {{
+            position: absolute;
+            background: {card_bg} !important;
+            color: {text_color} !important;
+            border: 1px solid {border_color} !important;
+            border-radius: 10px !important;
+            padding: 12px 16px !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+            font-size: 12.5px !important;
+            line-height: 1.6 !important;
+            box-shadow: 0 10px 25px -5px {'rgba(0, 0, 0, 0.4)' if is_dark else 'rgba(0, 0, 0, 0.12)'} !important;
+            pointer-events: none !important;
+            z-index: 99999 !important;
+            max-width: 320px !important;
+            white-space: pre-line !important;
+            word-break: keep-all !important;
+        }}
+    </style>
+</head>
+<body>
+    <div id="3d-graph"></div>
+
+    <script>
+        const gData = {g_data_json};
+        const elem = document.getElementById('3d-graph');
+
+        const Graph = ForceGraph3D()(elem)
+            .graphData(gData)
+            .backgroundColor('{graph_bg}')
+            .showNavInfo(false)
+            .nodeLabel(node => `<div class="scene-tooltip">${{node.tooltip}}</div>`)
+            .nodeThreeObject(node => {{
+                const group = new THREE.Group();
+                
+                // 3D Sphere mesh
+                const geom = new THREE.SphereGeometry(node.radius, 24, 24);
+                const mat = new THREE.MeshLambertMaterial({{
+                    color: node.color,
+                    transparent: true,
+                    opacity: node.opacity,
+                    emissive: node.is_seed ? 0xffb703 : (node.is_active ? node.color : 0x000000),
+                    emissiveIntensity: node.is_seed ? 0.6 : (node.is_active ? 0.15 : 0.0)
+                }});
+                const sphere = new THREE.Mesh(geom, mat);
+                group.add(sphere);
+
+                // Halo ring for Seed Node
+                if (node.is_seed) {{
+                    const ringGeom = new THREE.RingGeometry(node.radius + 1.8, node.radius + 3.2, 32);
+                    const ringMat = new THREE.MeshBasicMaterial({{ 
+                        color: 0xffd700, 
+                        side: THREE.DoubleSide,
+                        transparent: true,
+                        opacity: 0.95
+                    }});
+                    const ring = new THREE.Mesh(ringGeom, ringMat);
+                    ring.rotation.x = Math.PI / 2;
+                    group.add(ring);
+                }}
+
+                // Text sprite
+                if (typeof SpriteText !== 'undefined') {{
+                    const labelText = (node.is_seed ? '★ ' : '') + node.name;
+                    const sprite = new SpriteText(labelText);
+                    sprite.color = node.is_active ? '{node_label_color}' : '{border_color}';
+                    sprite.textHeight = node.is_seed ? 5.2 : (node.is_active ? 4.0 : 2.8);
+                    sprite.position.set(0, -node.radius - 4.5, 0);
+                    sprite.backgroundColor = '{graph_bg}bb';
+                    sprite.padding = 2;
+                    sprite.borderRadius = 3;
+                    group.add(sprite);
+                }}
+
+                return group;
+            }})
+            .nodeThreeObjectExtend(false)
+            .linkColor('color')
+            .linkWidth('width')
+            .linkDirectionalParticles('particles')
+            .linkDirectionalParticleSpeed('particleSpeed')
+            .linkDirectionalParticleWidth('particleWidth')
+            .linkDirectionalParticleColor('particleColor')
+            .linkLabel(link => `<div class="scene-tooltip">${{link.tooltip}}</div>`)
+            .onNodeClick(node => {{
+                // Smooth camera transition on click
+                const distance = 110;
+                const distRatio = 1 + distance / Math.hypot(node.x, node.y, node.z);
+                Graph.cameraPosition(
+                    {{ x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio }},
+                    node,
+                    1200
+                );
+            }});
+
+        // Physics tuning
+        Graph.d3Force('charge').strength(-190);
+        Graph.d3Force('link').distance(link => link.is_active ? 85 : 130);
+
+        // Initial camera position
+        Graph.cameraPosition({{ x: 0, y: 0, z: 290 }});
+    </script>
+</body>
+</html>"""
+    return force_3d_html
+
+
+# =========================================================
+# 8. 그래프 렌더러 4: AntV G6 (Alibaba 엔터프라이즈 방사형 뷰)
+# =========================================================
+def render_antv_g6_network(nodes, all_evaluated_edges, active_nodes: dict, seed_node_id: str, node_dict: dict, theme: dict, domain_meta: dict) -> str:
+    """
+    선택된 IDE 테마 팔레트가 완벽하게 적용된 AntV G6 방사형(Radial) 엔터프라이즈 그래프 HTML을 생성합니다.
+    """
+    is_dark = theme.get("is_dark", True)
+    graph_bg = theme.get("graph_bg", theme["bg"])
+    card_bg = theme["card_bg"]
+    border_color = theme["border"]
+    text_color = theme["text"]
+    node_colors = get_theme_node_color_map(theme, domain_meta)
+
+    parent_type = domain_meta["parent_type"]
+    child_type = domain_meta["child_type"]
+    rel_mkt = domain_meta["rel_mkt"]
+    rel_spec = domain_meta["rel_spec"]
+    rel_belongs = domain_meta["rel_belongs"]
+
+    g6_nodes = []
+    for node in nodes:
+        nid = node["id"]
+        ntype = node["type"]
+        nname = node["name"]
+        is_active = nid in active_nodes
+        is_seed = (nid == seed_node_id)
+        active_meta = active_nodes.get(nid, {})
+
+        node_tooltip = create_node_plain_tooltip(node, is_active, is_seed, active_meta)
+        node_color = node_colors.get(ntype, "#64748B")
+
+        g6_nodes.append({
+            "id": nid,
+            "label": f"★ {nname}" if is_seed else nname,
+            "type": "circle",
+            "size": 64 if is_seed else (48 if ntype in [parent_type, child_type] and is_active else (38 if is_active else 26)),
+            "style": {
+                "fill": node_color if is_active else card_bg,
+                "stroke": "#FFD700" if is_seed else (node_color if is_active else border_color),
+                "lineWidth": 4 if is_seed else (2.5 if is_active else 1.2),
+                "opacity": 1.0 if is_active else 0.28,
+                "shadowColor": "#FFD700" if is_seed else (node_color if is_active else "transparent"),
+                "shadowBlur": 22 if is_seed else (10 if is_active else 0),
+                "cursor": "pointer"
+            },
+            "labelCfg": {
+                "position": "bottom",
+                "offset": 7,
+                "style": {
+                    "fill": "#FFFFFF" if is_dark else "#0F172A",
+                    "fontSize": 12 if is_seed else (11 if is_active else 9.5),
+                    "fontWeight": "bold" if (is_seed or is_active) else "normal",
+                    "background": {
+                        "fill": graph_bg,
+                        "padding": [2, 6, 2, 6],
+                        "radius": 4
+                    }
+                }
+            },
+            "tooltip": node_tooltip
+        })
+
+    g6_edges = []
+    for idx, edge in enumerate(all_evaluated_edges):
+        s = edge["source"]
+        t = edge["target"]
+        rel = edge["relation"]
+        w = edge["dynamic_weight"]
+        is_active = edge.get("is_active", False)
+
+        s_name = node_dict.get(s, {}).get("name", s)
+        t_name = node_dict.get(t, {}).get("name", t)
+        edge_tooltip = create_edge_plain_tooltip(edge, is_active, s_name, t_name)
+
+        if rel == rel_mkt:
+            edge_color = node_colors.get(domain_meta["mkt_type"], "#C084FC")
+        elif rel == rel_spec:
+            edge_color = node_colors.get(domain_meta["spec_type"], "#4ADE80")
+        elif rel == rel_belongs:
+            edge_color = node_colors.get(domain_meta["parent_type"], "#60A5FA")
+        else:
+            edge_color = node_colors.get(domain_meta["filter_type"], "#22D3EE")
+
+        g6_edges.append({
+            "id": f"e_{idx}_{s}_{t}",
+            "source": s,
+            "target": t,
+            "label": f"{rel} ({w:.1f})" if is_active else "",
+            "style": {
+                "stroke": edge_color if is_active else border_color,
+                "lineWidth": 2.6 if is_active else 1.0,
+                "opacity": 1.0 if is_active else 0.2,
+                "lineDash": None if is_active else [4, 4],
+                "endArrow": {
+                    "path": "M 0,0 L 8,4 L 8,-4 Z",
+                    "fill": edge_color if is_active else border_color,
+                    "opacity": 1.0 if is_active else 0.2
+                }
+            },
+            "labelCfg": {
+                "autoRotate": True,
+                "style": {
+                    "fill": "#F8FAFC" if is_dark else "#0F172A",
+                    "fontSize": 10,
+                    "fontWeight": "bold",
+                    "background": {
+                        "fill": graph_bg,
+                        "padding": [2, 5, 2, 5],
+                        "radius": 3
+                    }
+                }
+            },
+            "tooltip": edge_tooltip
+        })
+
+    g6_data_json = json.dumps({"nodes": g6_nodes, "edges": g6_edges}, ensure_ascii=False)
+
+    antv_g6_html = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <script src="https://gw.alipayobjects.com/os/lib/antv/g6/4.8.24/dist/g6.min.js"></script>
+    <style>
+        body, html {{
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: {graph_bg};
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }}
+        #mountNode {{
+            width: 100%;
+            height: 680px;
+            position: relative;
+        }}
+        .g6-tooltip {{
+            position: absolute;
+            background: {card_bg};
+            color: {text_color};
+            border: 1px solid {border_color};
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 12.5px;
+            line-height: 1.6;
+            box-shadow: 0 10px 25px -5px {'rgba(0, 0, 0, 0.4)' if is_dark else 'rgba(0, 0, 0, 0.12)'};
+            pointer-events: none;
+            z-index: 99999;
+            max-width: 320px;
+            white-space: pre-line;
+            word-break: keep-all;
+        }}
+    </style>
+</head>
+<body>
+    <div id="mountNode"></div>
+
+    <script>
+        const data = {g6_data_json};
+
+        const tooltip = new G6.Tooltip({{
+            offsetX: 15,
+            offsetY: 15,
+            itemTypes: ['node', 'edge'],
+            getContent: (e) => {{
+                const model = e.item.getModel();
+                return model.tooltip || '';
+            }},
+            className: 'g6-tooltip'
+        }});
+
+        const container = document.getElementById('mountNode');
+        const width = container.scrollWidth || window.innerWidth;
+        const height = 680;
+
+        const graph = new G6.Graph({{
+            container: 'mountNode',
+            width: width,
+            height: height,
+            plugins: [tooltip],
+            modes: {{
+                default: [
+                    'drag-canvas',
+                    'zoom-canvas',
+                    'drag-node',
+                    {{
+                        type: 'activate-relations',
+                        activeState: 'active',
+                        inactiveState: 'inactive',
+                        resetSelected: true
+                    }}
+                ]
+            }},
+            layout: {{
+                type: 'radial',
+                center: [width / 2, height / 2],
+                focusNode: '{seed_node_id}',
+                unitRadius: 135,
+                linkDistance: 130,
+                preventOverlap: true,
+                nodeSize: 65,
+                strictRadial: false
+            }},
+            animate: true
+        }});
+
+        graph.data(data);
+        graph.render();
+
+        // Node click: focus item to center with smooth easing
+        graph.on('node:click', (evt) => {{
+            const {{ item }} = evt;
+            graph.focusItem(item, true, {{
+                easing: 'easeCubic',
+                duration: 500
+            }});
+        }});
+    </script>
+</body>
+</html>"""
+    return antv_g6_html
+
+
 # ==========================================
-# 7. Main Streamlit Application
+# 9. Main Streamlit Application
 # ==========================================
 def main():
     st.set_page_config(
@@ -1965,20 +2400,26 @@ def main():
     col_rend1, col_rend2 = st.columns([1.3, 2.7])
     with col_rend1:
         renderer_options = [
-            "1. PyVis (Vis.js 물리 시뮬레이션)",
-            "2. Cytoscape.js (엔지니어링/구조적 레이아웃)"
+            "1. PyVis (2D Physics 물리 엔진)",
+            "2. Cytoscape.js (구조적 엔지니어링 뷰)",
+            "3. 3D Force Graph (WebGL 3D 우주 궤도 뷰)",
+            "4. AntV G6 (Alibaba 엔터프라이즈 방사형 뷰)"
         ]
         selected_renderer = st.selectbox(
             "📊 그래프 렌더링 엔진 선택",
             renderer_options,
             index=0,
-            help="동일한 온톨로지 서브그래프 데이터를 PyVis(물리) 및 Cytoscape.js(구조적)로 전환하여 비교합니다."
+            help="동일한 온톨로지 서브그래프 데이터를 4가지 최신 시각화 엔진(2D 물리, 엔지니어링, 3D WebGL 우주, 엔터프라이즈 방사형)으로 전환하여 비교합니다."
         )
     with col_rend2:
         if "PyVis" in selected_renderer:
-            st.info("⚡ **PyVis (Vis.js Physics)**: ForceAtlas2 기반 물리 시뮬레이션으로 노드가 넓게 퍼지며 자유로운 드래그와 유기적 줌을 제공합니다.")
+            st.info("⚡ **PyVis (Vis.js Physics)**: ForceAtlas2 기반 2D 물리 시뮬레이션으로 노드가 유기적으로 넓게 퍼지며 자유로운 드래그와 물리 반동 효과를 제공합니다.")
+        elif "Cytoscape" in selected_renderer:
+            st.info("📐 **Cytoscape.js (COSE Layout)**: 생물정보학 및 네트워크 공학 표준 계층형 그래프 엔진으로 안정적인 구조적 위상과 베지어 곡선 엣지를 제공합니다.")
+        elif "3D Force" in selected_renderer:
+            st.info("🚀 **3D Force Graph (Three.js / WebGL)**: 3차원 우주 궤도 공간에서 노드가 3D 구체로 회전하며, 활성 탐색 경로를 따라 빛나는 에너지 입자(Particle)가 실시간으로 흐릅니다.")
         else:
-            st.info("📐 **Cytoscape.js (COSE Layout)**: 생물정보학 및 네트워크 공학 표준 그래프 엔진으로 안정적인 구조적 위상과 베지어 곡선 엣지를 제공합니다.")
+            st.info("🎨 **AntV G6 (Alibaba Enterprise Radial)**: 알리바바 엔터프라이즈 방사형(Radial) 위상 레이아웃으로 시작 노드 중심 1-Hop/2-Hop 노드 포커싱 및 글로우(Glow) 효과를 제공합니다.")
 
     st.markdown(f"""
     <div class='legend-box'>
@@ -1995,10 +2436,18 @@ def main():
         graph_html = render_pyvis_network(nodes, all_evaluated_edges, active_nodes, seed_node_id, node_dict, active_theme, domain_meta)
         components.html(graph_html, height=710, scrolling=False)
         st.caption("💡 PyVis 팁: 마우스 휠로 줌인/줌아웃하고, 노드를 드래그하여 자유롭게 배치할 수 있습니다. 마우스 호버 시 카드형 툴팁이 표시됩니다.")
-    else:
+    elif "Cytoscape" in selected_renderer:
         cytoscape_html = render_cytoscape_network(nodes, all_evaluated_edges, active_nodes, seed_node_id, node_dict, active_theme, domain_meta)
         components.html(cytoscape_html, height=710, scrolling=False)
         st.caption("💡 Cytoscape.js 팁: 배경을 드래그하여 팬(Pan) 이동하고, 노드/엣지 위에 마우스를 올리면 상세 카드 툴팁이 나타납니다.")
+    elif "3D Force" in selected_renderer:
+        force_3d_html = render_3d_force_network(nodes, all_evaluated_edges, active_nodes, seed_node_id, node_dict, active_theme, domain_meta)
+        components.html(force_3d_html, height=710, scrolling=False)
+        st.caption("💡 3D Force Graph 팁: 좌클릭 드래그로 360도 회전, 우클릭 드래그로 팬(Pan) 이동, 마우스 휠로 줌인/줌아웃할 수 있습니다. 노드 클릭 시 카메라가 해당 노드로 부드럽게 이동합니다.")
+    else:
+        antv_g6_html = render_antv_g6_network(nodes, all_evaluated_edges, active_nodes, seed_node_id, node_dict, active_theme, domain_meta)
+        components.html(antv_g6_html, height=710, scrolling=False)
+        st.caption("💡 AntV G6 팁: 노드 위에 마우스를 올리면 연결된 엣지만 활성화(Focus)되며, 노드 클릭 시 해당 노드를 화면 중앙으로 이동시킵니다.")
 
     st.markdown(f"<div style='margin-top: 24px; margin-bottom: 24px;'><hr style='border:0; border-top:1px solid {active_theme['border']};'/></div>", unsafe_allow_html=True)
 

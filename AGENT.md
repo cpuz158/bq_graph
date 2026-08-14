@@ -88,9 +88,11 @@
 4. **`💡 온톨로지 관계(Edge) 정의 및 비즈니스 역할 가이드` Expander**: 도메인별 마케팅/프로모션 vs 기술/제원 스펙 비교 테이블.
 
 #### [상단 영역] 🕸️ Interactive Knowledge Graph Visualization (Full Width, 710px)
-1. **그래프 렌더링 엔진 선택 드롭다운**:
-   - `1. PyVis (Vis.js 물리 시뮬레이션)`: `forceAtlas2Based` 물리 엔진, 마우스 휠 줌/팬, 노드 자유 드래그, 다크/라이트 배경 스트로크 폰트, 유니코드 카드형 텍스트 툴팁.
-   - `2. Cytoscape.js (엔지니어링/구조적 레이아웃)`: COSE compound 레이아웃, 베지어 곡선 엣지, 마우스 호버 위치 추적 플로팅 툴팁(`div#cy-tooltip`).
+1. **그래프 렌더링 엔진 선택 드롭다운 (4대 차세대 시각화 엔진)**:
+   - `1. PyVis (2D Physics 물리 엔진)`: `forceAtlas2Based` 물리 엔진, 마우스 휠 줌/팬, 노드 자유 드래그, 다크/라이트 배경 스트로크 폰트, 유니코드 카드형 텍스트 툴팁.
+   - `2. Cytoscape.js (구조적 엔지니어링 뷰)`: COSE compound 레이아웃, 베지어 곡선 엣지, 마우스 호버 위치 추적 플로팅 툴팁(`div#cy-tooltip`).
+   - `3. 3D Force Graph (WebGL 3D 우주 궤도 뷰)`: Three.js/WebGL 기반 3차원 우주 궤도 뷰, 360도 3D 회전/줌, 활성 탐색 경로를 따라 흐르는 실시간 에너지 입자(Particle) 효과, 노드 클릭 시 부드러운 카메라 비행 이동.
+   - `4. AntV G6 (Alibaba 엔터프라이즈 방사형 뷰)`: 알리바바 엔터프라이즈 방사형(Radial) 위상 레이아웃, 시작 노드 중심 1-Hop/2-Hop 노드 포커싱 인터랙션, 노드 골드/네온 글로우(Glow) 효과.
 2. 범례 배지 박스 (5대 노드 타입 배색 동기화).
 
 #### [하단 영역] ⚡ Dynamic Cypher/GQL Query & Grounding Result (4-Tabs)
