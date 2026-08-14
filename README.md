@@ -50,10 +50,17 @@
 
 ## 🚀 로컬 실행 방법 (Local Getting Started)
 
+### 빠른 실행 (One-line Run)
 ```bash
-# 1. 저장소 클론
-git clone https://github.com/your-org/vehicle-knowledge-graph.git
-cd vehicle-knowledge-graph
+./run.sh
+```
+*가상환경(`.venv`) 생성, 의존성 설치, Streamlit 앱 실행까지 원클릭으로 자동 처리됩니다.*
+
+### 수동 실행 (Manual Step-by-Step)
+```bash
+# 1. 저장소 클론 및 이동
+git clone git@github.com:cpuz158/bq_graph.git
+cd bq_graph
 
 # 2. Python 가상환경 생성 및 활성화
 python3 -m venv .venv
@@ -65,7 +72,7 @@ pip install -r requirements.txt
 # 4. Streamlit 앱 실행
 streamlit run app.py
 ```
-브라우저에서 `http://localhost:8501`로 접속하여 도메인 및 테마를 자유롭게 전환하며 테스트할 수 있습니다.
+브라우저에서 `http://localhost:8501`로 접속하여 3대 비즈니스 도메인 및 4대 시각화 엔진, 10대 테마를 자유롭게 전환하며 테스트할 수 있습니다.
 
 ---
 
