@@ -1666,13 +1666,14 @@ def render_cytoscape_network(nodes, all_evaluated_edges, active_nodes: dict, see
 # =========================================================
 def render_3d_force_network(nodes, all_evaluated_edges, active_nodes: dict, seed_node_id: str, node_dict: dict, theme: dict, domain_meta: dict) -> str:
     """
-    선택된 IDE 테마 팔레트와 3D 텍스트 스프라이트(SpriteText) 레이블이 상시 표시되는 3D Force-Directed WebGL 우주 궤도 뷰 HTML을 생성합니다.
+    선택된 IDE 테마 팔레트와 순수 HTML5 Canvas 텍스처 스프라이트 레이블이 상시 표시되는 3D Force-Directed WebGL 우주 궤도 뷰 HTML을 생성합니다.
     """
     is_dark = theme.get("is_dark", True)
     graph_bg = theme.get("graph_bg", theme["bg"])
     card_bg = theme["card_bg"]
     border_color = theme["border"]
     text_color = theme["text"]
+    accent_color = theme.get("accent", "#38BDF8")
     node_colors = get_theme_node_color_map(theme, domain_meta)
 
     parent_type = domain_meta["parent_type"]
@@ -1706,7 +1707,7 @@ def render_3d_force_network(nodes, all_evaluated_edges, active_nodes: dict, seed
             "color": node_color,
             "is_active": is_active,
             "is_seed": is_seed,
-            "text_color": ("#FFFFFF" if is_dark else "#0F172A") if is_active else ("#94A3B8" if is_dark else "#64748B"),
+            "text_color": ("#FFFFFF" if is_dark else "#0F172A") if is_active else ("#B0BEC5" if is_dark else "#64748B"),
             "tooltip": node_tooltip
         })
 
@@ -1735,7 +1736,7 @@ def render_3d_force_network(nodes, all_evaluated_edges, active_nodes: dict, seed
             "source": str(s),
             "target": str(t),
             "name": f"{rel} (Weight: {w:.1f})",
-            "color": edge_color if is_edge_active else ("rgba(75, 85, 99, 0.15)" if is_dark else "rgba(203, 213, 225, 0.3)"),
+            "color": edge_color if is_edge_active else ("rgba(75, 85, 99, 0.18)" if is_dark else "rgba(203, 213, 225, 0.3)"),
             "particle": 4 if is_edge_active else 0,
             "particleColor": edge_color if is_edge_active else "#666666",
             "tooltip": edge_tooltip
@@ -1765,7 +1766,7 @@ def render_3d_force_network(nodes, all_evaluated_edges, active_nodes: dict, seed
       position: absolute;
       top: 10px;
       left: 10px;
-      background: {'rgba(0, 0, 0, 0.72)' if is_dark else 'rgba(255, 255, 255, 0.92)'};
+      background: {'rgba(0, 0, 0, 0.75)' if is_dark else 'rgba(255, 255, 255, 0.92)'};
       color: {'#FFFFFF' if is_dark else '#0F172A'};
       border: 1px solid {border_color};
       padding: 6px 14px;
@@ -1793,17 +1794,58 @@ def render_3d_force_network(nodes, all_evaluated_edges, active_nodes: dict, seed
       word-break: keep-all !important;
     }}
   </style>
-  <!-- Three.js, Three SpriteText, 3D Force Graph CDN -->
-  <script src="https://unpkg.com/three"></script>
-  <script src="https://unpkg.com/three-spritetext"></script>
+  <!-- Three.js 및 3D Force Graph 공식 검증 CDN -->
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
   <script src="https://unpkg.com/3d-force-graph@1.73.4/dist/3d-force-graph.min.js"></script>
 </head>
 <body>
-  <div class="guide-badge">🏷️ 3D 노드 레이블 상시 표시 모드 | 🖱️ 좌클릭: 360° 회전 | 우클릭: 이동 | 휠: 줌</div>
+  <div class="guide-badge">🏷️ 3D 상시 레이블 활성화 | 🖱️ 좌클릭: 360° 회전 | 우클릭: 이동 | 휠: 줌</div>
   <div id="3d-graph"></div>
   <script>
     const gData = {g_data_json};
     const elem = document.getElementById('3d-graph');
+
+    // 순수 HTML5 Canvas를 이용한 텍스트 뱃지 스프라이트 생성기
+    function createTextSprite(text, textColor, isSeed, isActive) {{
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 512;
+      canvas.height = 128;
+
+      // 배경 둥근 박스
+      ctx.fillStyle = isSeed ? 'rgba(211, 47, 47, 0.88)' : (isActive ? '{card_bg}ee' : 'rgba(50, 50, 50, 0.45)');
+      const x = 10, y = 10, w = 492, h = 108, r = 24;
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+      ctx.fill();
+
+      // 테두리 선
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = isSeed ? '#FFD700' : (isActive ? '{accent_color}' : '{border_color}');
+      ctx.stroke();
+
+      // 텍스트 출력
+      ctx.font = isSeed ? 'bold 44px -apple-system, sans-serif' : 'bold 38px -apple-system, sans-serif';
+      ctx.fillStyle = textColor;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 256, 64);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.needsUpdate = true;
+      const material = new THREE.SpriteMaterial({{ map: texture, transparent: true, depthWrite: false }});
+      const sprite = new THREE.Sprite(material);
+      
+      // 크기 및 비율 지정
+      const scale = isSeed ? 24 : (isActive ? 18 : 12);
+      sprite.scale.set(scale * 1.8, scale * 0.45, 1);
+      return sprite;
+    }}
 
     const Graph = ForceGraph3D()(elem)
       .backgroundColor('{graph_bg}')
@@ -1812,37 +1854,29 @@ def render_3d_force_network(nodes, all_evaluated_edges, active_nodes: dict, seed
       .nodeLabel(node => `<div class="scene-tooltip">${{node.tooltip}}</div>`)
       .linkLabel(link => `<div class="scene-tooltip">${{link.tooltip}}</div>`)
       .linkColor('color')
-      .linkWidth(link => link.particle > 0 ? 1.8 : 0.4)
+      .linkWidth(link => link.particle > 0 ? 2.0 : 0.4)
       .linkDirectionalParticles('particle')
       .linkDirectionalParticleSpeed(0.008)
       .linkDirectionalParticleWidth(2.5)
       .linkDirectionalParticleColor(link => link.particleColor)
-      // 노드 구체(Sphere) + 상단 텍스트 스프라이트(SpriteText) 동시 렌더링
       .nodeThreeObject(node => {{
         const group = new THREE.Group();
 
-        // 1) 3D 구체 (Node Sphere)
-        const radius = node.val * 0.7;
-        const geometry = new THREE.SphereGeometry(radius, 20, 20);
-        const material = new THREE.MeshLambertMaterial({{
+        // 1) 3D 구체 노드
+        const radius = node.val * 0.6;
+        const sphereGeo = new THREE.SphereGeometry(radius, 16, 16);
+        const sphereMat = new THREE.MeshBasicMaterial({{
           color: node.color,
           transparent: true,
-          opacity: node.is_active ? 0.95 : 0.3
+          opacity: node.is_active ? 0.95 : 0.25
         }});
-        const sphere = new THREE.Mesh(geometry, material);
+        const sphere = new THREE.Mesh(sphereGeo, sphereMat);
         group.add(sphere);
 
-        // 2) 텍스트 스프라이트 레이블 (Node Text Label - 카메라 정면 항상 응시)
-        if (typeof SpriteText !== 'undefined') {{
-          const sprite = new SpriteText(node.short_label);
-          sprite.color = node.text_color;
-          sprite.textHeight = node.is_seed ? 6.2 : (node.is_active ? 4.5 : 2.5);
-          sprite.position.y = radius + (sprite.textHeight * 0.85); // 구체 바로 위에 배치
-          sprite.backgroundColor = node.is_active ? '{graph_bg}bb' : 'transparent';
-          sprite.padding = 1.5;
-          sprite.borderRadius = 3;
-          group.add(sprite);
-        }}
+        // 2) 구체 상단 텍스트 스프라이트
+        const sprite = createTextSprite(node.short_label, node.text_color, node.is_seed, node.is_active);
+        sprite.position.y = radius + (node.is_seed ? 8 : 5.5);
+        group.add(sprite);
 
         return group;
       }})
@@ -1857,7 +1891,7 @@ def render_3d_force_network(nodes, all_evaluated_edges, active_nodes: dict, seed
         );
       }});
 
-    // 초기 카메라 거리 설정
+    // 초기 시점 설정
     setTimeout(() => {{
       Graph.cameraPosition({{ z: 320 }});
     }}, 200);
