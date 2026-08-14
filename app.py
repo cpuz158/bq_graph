@@ -1692,17 +1692,16 @@ def render_3d_force_network(nodes, all_evaluated_edges, active_nodes: dict, seed
 
         node_tooltip = create_node_plain_tooltip(node, is_active, is_seed, active_meta)
         node_color = node_colors.get(ntype, "#64748B")
+        if is_seed:
+            node_color = "#FFD700" if is_dark else "#E11D48"
+        elif not is_active:
+            node_color = "#475569" if is_dark else "#94A3B8"
 
         g_nodes.append({
-            "id": nid,
-            "name": nname,
-            "type": ntype,
-            "is_active": is_active,
-            "is_seed": is_seed,
-            "color": "#FFD700" if is_seed else (node_color if is_active else f"{border_color}88"),
-            "radius": 9.5 if is_seed else (7.0 if ntype in [parent_type, child_type] and is_active else (5.5 if is_active else 3.5)),
-            "opacity": 1.0 if is_active else 0.28,
-            "val": 15 if is_seed else (10 if is_active else 4),
+            "id": str(nid),
+            "name": f"[{ntype}] {nname}" if not is_seed else f"★ [{ntype}] {nname} (Seed)",
+            "val": 18 if is_seed else (11 if is_active else 4),
+            "color": node_color,
             "tooltip": node_tooltip
         })
 
@@ -1728,144 +1727,106 @@ def render_3d_force_network(nodes, all_evaluated_edges, active_nodes: dict, seed
             edge_color = node_colors.get(domain_meta["filter_type"], "#22D3EE")
 
         g_links.append({
-            "source": s,
-            "target": t,
-            "relation": rel,
-            "weight": w,
-            "is_active": is_active,
-            "color": edge_color if is_active else f"{border_color}33",
-            "width": 2.4 if is_active else 0.6,
-            "particles": 4 if is_active else 0,
-            "particleSpeed": 0.01 if is_active else 0,
-            "particleWidth": 2.5 if is_active else 0,
+            "source": str(s),
+            "target": str(t),
+            "name": f"{rel} ({w:.1f})",
+            "color": edge_color if is_active else ("rgba(75, 85, 99, 0.2)" if is_dark else "rgba(203, 213, 225, 0.35)"),
+            "particle": 4 if is_active else 0,
             "particleColor": edge_color if is_active else "#666666",
             "tooltip": edge_tooltip
         })
 
     g_data_json = json.dumps({"nodes": g_nodes, "links": g_links}, ensure_ascii=False)
-    node_label_color = "#FFFFFF" if is_dark else "#0F172A"
 
     force_3d_html = f"""<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8" />
-    <script src="https://cdn.jsdelivr.net/npm/3d-force-graph@1.73.3/dist/3d-force-graph.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three-spritetext@1.8.2/dist/three-spritetext.min.js"></script>
-    <style>
-        body, html {{
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: {graph_bg};
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }}
-        #3d-graph {{
-            width: 100%;
-            height: 680px;
-        }}
-        .scene-tooltip {{
-            position: absolute;
-            background: {card_bg} !important;
-            color: {text_color} !important;
-            border: 1px solid {border_color} !important;
-            border-radius: 10px !important;
-            padding: 12px 16px !important;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-            font-size: 12.5px !important;
-            line-height: 1.6 !important;
-            box-shadow: 0 10px 25px -5px {'rgba(0, 0, 0, 0.4)' if is_dark else 'rgba(0, 0, 0, 0.12)'} !important;
-            pointer-events: none !important;
-            z-index: 99999 !important;
-            max-width: 320px !important;
-            white-space: pre-line !important;
-            word-break: keep-all !important;
-        }}
-    </style>
+  <meta charset="utf-8">
+  <style>
+    html, body {{
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: {graph_bg};
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }}
+    #3d-graph {{
+      width: 100%;
+      height: 100%;
+    }}
+    .guide-badge {{
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: {'rgba(0, 0, 0, 0.7)' if is_dark else 'rgba(255, 255, 255, 0.9)'};
+      color: {'#FFFFFF' if is_dark else '#0F172A'};
+      border: 1px solid {border_color};
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 11.5px;
+      font-weight: 500;
+      pointer-events: none;
+      z-index: 999;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }}
+    .scene-tooltip {{
+      position: absolute;
+      background: {card_bg} !important;
+      color: {text_color} !important;
+      border: 1px solid {border_color} !important;
+      border-radius: 10px !important;
+      padding: 12px 16px !important;
+      font-size: 12.5px !important;
+      line-height: 1.6 !important;
+      box-shadow: 0 10px 25px -5px {'rgba(0, 0, 0, 0.4)' if is_dark else 'rgba(0, 0, 0, 0.12)'} !important;
+      pointer-events: none !important;
+      z-index: 99999 !important;
+      max-width: 320px !important;
+      white-space: pre-line !important;
+      word-break: keep-all !important;
+    }}
+  </style>
+  <script src="https://unpkg.com/3d-force-graph@1.73.4/dist/3d-force-graph.min.js"></script>
 </head>
 <body>
-    <div id="3d-graph"></div>
+  <div class="guide-badge">🖱️ 좌클릭 드래그: 360° 회전 | 우클릭 드래그: 팬(Pan) 이동 | 휠: 줌인/아웃 | 노드 클릭: 포커스</div>
+  <div id="3d-graph"></div>
+  <script>
+    const gData = {g_data_json};
+    const elem = document.getElementById('3d-graph');
 
-    <script>
-        const gData = {g_data_json};
-        const elem = document.getElementById('3d-graph');
+    const Graph = ForceGraph3D()(elem)
+      .backgroundColor('{graph_bg}')
+      .graphData(gData)
+      .showNavInfo(false)
+      .nodeLabel(node => `<div class="scene-tooltip">${{node.tooltip}}</div>`)
+      .nodeVal('val')
+      .nodeColor('color')
+      .nodeResolution(20)
+      .linkLabel(link => `<div class="scene-tooltip">${{link.tooltip}}</div>`)
+      .linkColor('color')
+      .linkWidth(link => link.particle > 0 ? 2.0 : 0.5)
+      .linkDirectionalParticles('particle')
+      .linkDirectionalParticleSpeed(0.008)
+      .linkDirectionalParticleWidth(2.6)
+      .linkDirectionalParticleColor(link => link.particleColor)
+      .onNodeClick(node => {{
+        const distance = 120;
+        const distRatio = 1 + distance / Math.hypot(node.x, node.y, node.z);
+        Graph.cameraPosition(
+          {{ x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio }},
+          node,
+          1200
+        );
+      }});
 
-        const Graph = ForceGraph3D()(elem)
-            .graphData(gData)
-            .backgroundColor('{graph_bg}')
-            .showNavInfo(false)
-            .nodeLabel(node => `<div class="scene-tooltip">${{node.tooltip}}</div>`)
-            .nodeThreeObject(node => {{
-                const group = new THREE.Group();
-                
-                // 3D Sphere mesh
-                const geom = new THREE.SphereGeometry(node.radius, 24, 24);
-                const mat = new THREE.MeshLambertMaterial({{
-                    color: node.color,
-                    transparent: true,
-                    opacity: node.opacity,
-                    emissive: node.is_seed ? 0xffb703 : (node.is_active ? node.color : 0x000000),
-                    emissiveIntensity: node.is_seed ? 0.6 : (node.is_active ? 0.15 : 0.0)
-                }});
-                const sphere = new THREE.Mesh(geom, mat);
-                group.add(sphere);
-
-                // Halo ring for Seed Node
-                if (node.is_seed) {{
-                    const ringGeom = new THREE.RingGeometry(node.radius + 1.8, node.radius + 3.2, 32);
-                    const ringMat = new THREE.MeshBasicMaterial({{ 
-                        color: 0xffd700, 
-                        side: THREE.DoubleSide,
-                        transparent: true,
-                        opacity: 0.95
-                    }});
-                    const ring = new THREE.Mesh(ringGeom, ringMat);
-                    ring.rotation.x = Math.PI / 2;
-                    group.add(ring);
-                }}
-
-                // Text sprite
-                if (typeof SpriteText !== 'undefined') {{
-                    const labelText = (node.is_seed ? '★ ' : '') + node.name;
-                    const sprite = new SpriteText(labelText);
-                    sprite.color = node.is_active ? '{node_label_color}' : '{border_color}';
-                    sprite.textHeight = node.is_seed ? 5.2 : (node.is_active ? 4.0 : 2.8);
-                    sprite.position.set(0, -node.radius - 4.5, 0);
-                    sprite.backgroundColor = '{graph_bg}bb';
-                    sprite.padding = 2;
-                    sprite.borderRadius = 3;
-                    group.add(sprite);
-                }}
-
-                return group;
-            }})
-            .nodeThreeObjectExtend(false)
-            .linkColor('color')
-            .linkWidth('width')
-            .linkDirectionalParticles('particles')
-            .linkDirectionalParticleSpeed('particleSpeed')
-            .linkDirectionalParticleWidth('particleWidth')
-            .linkDirectionalParticleColor('particleColor')
-            .linkLabel(link => `<div class="scene-tooltip">${{link.tooltip}}</div>`)
-            .onNodeClick(node => {{
-                // Smooth camera transition on click
-                const distance = 110;
-                const distRatio = 1 + distance / Math.hypot(node.x, node.y, node.z);
-                Graph.cameraPosition(
-                    {{ x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio }},
-                    node,
-                    1200
-                );
-            }});
-
-        // Physics tuning
-        Graph.d3Force('charge').strength(-190);
-        Graph.d3Force('link').distance(link => link.is_active ? 85 : 130);
-
-        // Initial camera position
-        Graph.cameraPosition({{ x: 0, y: 0, z: 290 }});
-    </script>
+    // 카메라 위치 초기 조정
+    setTimeout(() => {{
+      Graph.cameraPosition({{ z: 290 }});
+    }}, 200);
+  </script>
 </body>
 </html>"""
     return force_3d_html
