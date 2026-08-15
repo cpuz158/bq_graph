@@ -12,7 +12,7 @@ import networkx as nx
 from pyvis.network import Network
 import pandas as pd
 import json
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 # ==========================================
 # 0. 10대 개발자 인기 IDE 테마 팔레트 정의
@@ -73,14 +73,30 @@ THEMES = {
 }
 
 
+def get_client_hour() -> int:
+    """
+    1. 브라우저 URL 쿼리 파라미터(?client_hour=...)가 존재할 경우 사용자 브라우저의 로컬 시간(0~23)을 사용합니다.
+    2. 파라미터가 없을 경우 서버(UTC) 기준 한국 표준시(KST: UTC+9)로 보정하여 반환합니다.
+    """
+    if hasattr(st, "query_params") and "client_hour" in st.query_params:
+        try:
+            return int(st.query_params["client_hour"]) % 24
+        except (ValueError, TypeError):
+            pass
+    # 서버 UTC 기준 KST (UTC+9) 계산
+    now_utc = datetime.now(timezone.utc)
+    kst_hour = (now_utc + timedelta(hours=9)).hour
+    return kst_hour
+
+
 def get_default_theme_by_time() -> str:
     """
-    접속 시간에 따라 기본 IDE 테마를 결정합니다:
+    사용자 브라우저 로컬 시각에 따라 기본 IDE 테마를 결정합니다:
     - 낮 시간 (06:00 ~ 18:00): ☀️ VS Code Light+
     - 저녁/야간 시간 (18:00 ~ 익일 06:00): 🌙 VS Code Dark+
     """
-    current_hour = datetime.now().hour
-    if 6 <= current_hour < 18:
+    client_hour = get_client_hour()
+    if 6 <= client_hour < 18:
         return "☀️ VS Code Light+"
     else:
         return "🌙 VS Code Dark+"
@@ -2780,8 +2796,27 @@ def main():
     st.markdown(generate_theme_css(active_theme, domain_meta), unsafe_allow_html=True)
 
     mode_label = "🌙 다크 모드" if active_theme.get("is_dark", True) else "☀️ 라이트 모드"
-    st.sidebar.caption(f"도메인: **{domain_meta['name']}** | 테마: **{selected_theme_name}** ({mode_label})")
+    cur_client_h = get_client_hour()
+    st.sidebar.caption(f"도메인: **{domain_meta['name']}** | 테마: **{selected_theme_name}** ({mode_label}, 로컬 {cur_client_h:02d}시 기준)")
     st.sidebar.markdown("---")
+
+    # 브라우저 클라이언트 로컬 시간 동기화 JS (사용자 PC 시간 감지)
+    components.html(
+        """<script>
+        (function() {
+            try {
+                const clientHour = new Date().getHours();
+                const url = new URL(window.parent.location.href);
+                if (!url.searchParams.has('client_hour')) {
+                    url.searchParams.set('client_hour', clientHour);
+                    window.parent.location.replace(url.href);
+                }
+            } catch(e) {}
+        })();
+        </script>""",
+        height=0,
+        width=0
+    )
 
     # -------------------------------------------------------------
     # B. 발화 시뮬레이션 및 온톨로지 의도 제어
