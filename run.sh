@@ -28,9 +28,45 @@ echo "📥 의존성 패키지 확인 및 설치..."
 pip install --upgrade pip --quiet
 pip install -r requirements.txt --quiet
 
-# 4. Streamlit 웹 앱 구동
+# 4. 포트 및 CLI 옵션 파싱
 PORT=${PORT:-8501}
 ADDRESS=${ADDRESS:-"0.0.0.0"}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -p|--port)
+            PORT="$2"
+            shift 2
+            ;;
+        -a|--address)
+            ADDRESS="$2"
+            shift 2
+            ;;
+        -h|--help)
+            echo "사용법: ./run.sh [포트번호 또는 옵션]"
+            echo ""
+            echo "옵션:"
+            echo "  -p, --port <포트번호>     Streamlit 포트 번호 지정 (기본값: 8501)"
+            echo "  -a, --address <IP주소>    Streamlit 바인딩 주소 지정 (기본값: 0.0.0.0)"
+            echo "  -h, --help               도움말 출력"
+            echo ""
+            echo "예시:"
+            echo "  ./run.sh 8080"
+            echo "  ./run.sh -p 9000"
+            echo "  ./run.sh --port 8888"
+            exit 0
+            ;;
+        *)
+            if [[ "$1" =~ ^[0-9]+$ ]]; then
+                PORT="$1"
+                shift
+            else
+                echo "⚠️ 알 수 없는 옵션: $1 (도움말: ./run.sh --help)"
+                shift
+            fi
+            ;;
+    esac
+done
 
 echo "------------------------------------------------------------------"
 echo "🌐 로컬 서버 주소: http://localhost:${PORT}"
