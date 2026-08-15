@@ -12,6 +12,7 @@ import networkx as nx
 from pyvis.network import Network
 import pandas as pd
 import json
+from datetime import datetime
 
 # ==========================================
 # 0. 10대 개발자 인기 IDE 테마 팔레트 정의
@@ -70,6 +71,19 @@ THEMES = {
         "node_colors": {"Parent": "#539BF5", "Child": "#F47067", "Filter": "#57AB5A", "Marketing": "#BC8CFF", "Spec": "#DCBDFB"}
     }
 }
+
+
+def get_default_theme_by_time() -> str:
+    """
+    접속 시간에 따라 기본 IDE 테마를 결정합니다:
+    - 낮 시간 (06:00 ~ 18:00): ☀️ VS Code Light+
+    - 저녁/야간 시간 (18:00 ~ 익일 06:00): 🌙 VS Code Dark+
+    """
+    current_hour = datetime.now().hour
+    if 6 <= current_hour < 18:
+        return "☀️ VS Code Light+"
+    else:
+        return "🌙 VS Code Dark+"
 
 
 def get_theme_node_color_map(theme: dict, domain_meta: dict) -> dict:
@@ -2719,6 +2733,9 @@ def main():
             st.session_state.select_filter = matched_p["filter"]
 
     # Session State 기본값 초기화 (최초 1회)
+    if "selected_theme_key" not in st.session_state:
+        st.session_state.selected_theme_key = get_default_theme_by_time()
+
     if "selected_domain_key" not in st.session_state:
         st.session_state.selected_domain_key = domain_options[0]
         _, _, init_meta = generate_domain_data(domain_options[0])
@@ -2746,12 +2763,16 @@ def main():
     nodes, edges, domain_meta = generate_domain_data(selected_domain_str)
     node_dict = {n["id"]: n for n in nodes}
 
+    theme_options = list(THEMES.keys())
+    if st.session_state.get("selected_theme_key") not in theme_options:
+        st.session_state.selected_theme_key = get_default_theme_by_time()
+
     st.sidebar.markdown("## 🎨 UI Theme")
     selected_theme_name = st.sidebar.selectbox(
         "🎨 IDE UI 테마 선택",
-        list(THEMES.keys()),
-        index=0,
-        help="개발자 인기 Light 4종 / Dark 6종 IDE 테마로 전체 UI 배경 및 노드/엣지 배색을 실시간 전환합니다."
+        theme_options,
+        key="selected_theme_key",
+        help="낮시간(06~18시)에는 ☀️ VS Code Light+, 저녁시간(18~06시)에는 🌙 VS Code Dark+가 기본으로 자동 설정되며, 10대 IDE 테마로 자유롭게 변경 가능합니다."
     )
     active_theme = THEMES[selected_theme_name]
 
