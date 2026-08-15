@@ -1,8 +1,8 @@
 """
 Google Cloud BigQuery Graph & 시맨틱 온톨로지 탐색기 (Multi-Domain Knowledge Graph)
-- 3대 비즈니스 도메인: 🚗 자동차 (Automotive) / 🛍️ 이커머스 (E-Commerce) / 📱 모바일 요금제 (Telco)
+- 4대 비즈니스 도메인: 🚗 자동차 (Automotive) / 🛍️ 이커머스 (E-Commerce) / 📱 모바일 요금제 (Telco) / 🔬 반도체 8대 공정 (Semiconductor)
 - 10대 IDE 테마 실시간 전환 (Light 4종 + Dark 6종)
-- PyVis (Vis.js 물리) / Cytoscape.js (COSE 구조적) 듀얼 렌더링 엔진
+- 4대 시각화 렌더러 (PyVis, Cytoscape.js, 3D Force Graph, AntV G6)
 - BigQuery GQL & GoogleSQL GRAPH_TABLE 구문 강조 및 LLM Context Grounding 시뮬레이터 (단일 파일: app.py)
 """
 
@@ -509,7 +509,7 @@ def generate_domain_data(domain: str):
             {"source": "BC_CAMPING_TENT", "target": "PROMO_OUTDOOR_FEST", "relation": "HAS_PROMO", "desc": "아웃도어 페스타 그라운드시트"}
         ]
 
-    else:
+    elif "모바일" in domain or "요금제" in domain or "telco" in domain.lower():
         # -------------------------------------------------------------
         # 도메인 3: 📱 모바일 요금제 (Telco)
         # -------------------------------------------------------------
@@ -581,6 +581,123 @@ def generate_domain_data(domain: str):
             {"source": "PF_5G_PREMIER", "target": "BENEFIT_VIP_MEMBERSHIP", "relation": "HAS_BENEFIT", "desc": "VIP 영화 멤버십"},
             {"source": "PF_5G_PREMIER", "target": "BENEFIT_FAMILY_COMBO", "relation": "HAS_BENEFIT", "desc": "가족 유무선 결합할인"},
             {"source": "PF_SENIOR_CARE", "target": "BENEFIT_SILVER_CARE", "relation": "HAS_BENEFIT", "desc": "금융사기 안심 보상 보험"}
+        ]
+
+    else:
+        # -------------------------------------------------------------
+        # 도메인 4: 🔬 반도체 8대 공정 (Semiconductor / Fab Recipe Impact)
+        # -------------------------------------------------------------
+        domain_meta = {
+            "id": "semiconductor",
+            "name": "🔬 반도체 8대 공정 (Semiconductor)",
+            "bq_dataset": "gcp-project-semicon.fab_ontology.semiconductor_process_graph",
+            "parent_type": "ProcessStage",
+            "parent_label": "ProcessStage (8대 제조공정)",
+            "child_type": "RecipeParam",
+            "child_label": "RecipeParam (공정 레시피/조건)",
+            "filter_type": "FabLine",
+            "filter_label": "생산 팹/라인 (Fab Line)",
+            "mkt_type": "YieldImpact",
+            "mkt_label": "YieldImpact (수율/결함 영향도)",
+            "spec_type": "EquipmentSpec",
+            "spec_label": "EquipmentSpec (설비/챔버 스펙)",
+            "rel_belongs": "BELONGS_TO",
+            "rel_filter": "RUNS_ON",
+            "rel_mkt": "AFFECTS_YIELD",
+            "rel_spec": "CONTROLS_EQUIPMENT",
+            "filter_param_name": "생산 팹/라인 필터 (Fab Line Constraint)",
+            "filter_options": ["FAB_P3_DRAM", "FAB_P4_NAND", "FAB_S5_FOUNDRY", "ALL"],
+            "filter_options_labels": {
+                "FAB_P3_DRAM": "평택 P3 (1b nm DRAM 라인)",
+                "FAB_P4_NAND": "평택 P4 (V9 300+단 NAND 라인)",
+                "FAB_S5_FOUNDRY": "화성 S5 (SF3 3nm GAA 파운드리)",
+                "ALL": "ALL (전체 팹 라인)"
+            },
+            "presets": [
+                {
+                    "label": "Preset 1: 'EUV 노광량(Dose) 45mJ 상향 시 수율 및 결함 영향도' (수율 영향 분석)",
+                    "query": "EUV 노광량(Dose) 45mJ 상향 시 수율 및 결함 영향도",
+                    "intent": "INFO_SEARCH",
+                    "seed": "PROC_PHOTO",
+                    "max_hop": 2,
+                    "weight_threshold": 0.50,
+                    "filter": "FAB_P3_DRAM"
+                },
+                {
+                    "label": "Preset 2: 'EUV 노광기 파장 및 펠리클 투과율 장비 제어 스펙' (설비/레시피 제어)",
+                    "query": "EUV 노광기 파장 및 펠리클 투과율 장비 제어 스펙",
+                    "intent": "PURCHASE_INTENT",
+                    "seed": "PROC_PHOTO",
+                    "max_hop": 2,
+                    "weight_threshold": 0.50,
+                    "filter": "FAB_P3_DRAM"
+                },
+                {
+                    "label": "Preset 3: 'V9 NAND 300단 HARC 고선택비 에칭 시 홀 휨/불량 분석' (수율 영향 분석)",
+                    "query": "V9 NAND 300단 HARC 고선택비 에칭 시 홀 휨/불량 분석",
+                    "intent": "INFO_SEARCH",
+                    "seed": "PROC_ETCH",
+                    "max_hop": 2,
+                    "weight_threshold": 0.50,
+                    "filter": "FAB_P4_NAND"
+                },
+                {
+                    "label": "Preset 4: '3nm GAA High-K ALD 박막 증착온도 280℃ 변경 장비 스펙' (설비/레시피 제어)",
+                    "query": "3nm GAA High-K ALD 박막 증착온도 280℃ 변경 장비 스펙",
+                    "intent": "PURCHASE_INTENT",
+                    "seed": "PROC_DEPO",
+                    "max_hop": 2,
+                    "weight_threshold": 0.50,
+                    "filter": "FAB_S5_FOUNDRY"
+                }
+            ]
+        }
+
+        nodes = [
+            {"id": "PROC_PHOTO", "name": "03. 포토/노광 공정 (Photolithography)", "type": "ProcessStage", "desc": "EUV 13.5nm 극자외선 기반 초미세 회로 패턴 형성 공정", "attributes": {"stage_no": "03", "tech_node": "1b nm / 3nm GAA", "key_metric": "CD Uniformity & Overlay"}},
+            {"id": "PROC_ETCH", "name": "04. 식각 공정 (Plasma Dry Etching)", "type": "ProcessStage", "desc": "HARC(High Aspect Ratio Contact) 고선택비 플라즈마 건식 식각 공정", "attributes": {"stage_no": "04", "tech_node": "V9 300+단 NAND", "key_metric": "Selectivity & Tilt Angle"}},
+            {"id": "PROC_DEPO", "name": "05. 박막 증착 공정 (ALD / Thin Film)", "type": "ProcessStage", "desc": "원자층 단위 정밀 두께 제어 High-K 유전막 및 메탈 게이트 증착", "attributes": {"stage_no": "05", "tech_node": "3nm GAA MBCFET", "key_metric": "Step Coverage & Breakdown Voltage"}},
+            {"id": "PROC_CLEAN", "name": "02/06. 세정 및 이온주입 (Clean & Ion Implant)", "type": "ProcessStage", "desc": "초순수 RCA/초임계 CO2 세정 및 채널 도핑 이온주입 공정", "attributes": {"stage_no": "02/06", "tech_node": "1b nm DRAM", "key_metric": "Particle Count & Doping Depth"}},
+            {"id": "RCP_EUV_DOSE_45", "name": "EUV Dose 노광량 45mJ/cm² [+12% 상향] [웨이퍼당 비용 +$4.20]", "type": "RecipeParam", "desc": "EUV 광원 에너지 노광량을 40mJ에서 45mJ로 상향하여 패턴 붕괴(LWR) 방지", "attributes": {"param_name": "Exposure Dose", "target_val": "45 mJ/cm²", "cost_impact": "+$4.20/wafer", "market": "FAB_P3_DRAM"}},
+            {"id": "RCP_EUV_FOCUS_OFFSET", "name": "EUV 포커스 오프셋 -5nm [초점 미세조정] [비용 $0]", "type": "RecipeParam", "desc": "웨이퍼 단차 극복을 위한 Depth of Focus(DoF) 최적화", "attributes": {"param_name": "Focus Offset", "target_val": "-5 nm", "cost_impact": "$0", "market": "FAB_P3_DRAM"}},
+            {"id": "RCP_ETCH_CRYO_60", "name": "극저온 -60℃ 플라즈마 식각 [+C4F8 유량비 1.25] [챔버가동비 +$8.50]", "type": "RecipeParam", "desc": "극저온 에칭으로 300단 초고종횡비 채널 홀 식각 속도 및 수직도 향상", "attributes": {"param_name": "Chamber Temp & Gas Ratio", "target_val": "-60℃ / C4F8:CF4=1.25", "cost_impact": "+$8.50/wafer", "market": "FAB_P4_NAND"}},
+            {"id": "RCP_ETCH_RF_POWER", "name": "식각 Dual RF Source 3,200W [+400W 파워 업] [전력비 +$1.80]", "type": "RecipeParam", "desc": "플라즈마 이온 에너지 밀도 강화로 하부 바닥 도달 식각율 극대화", "attributes": {"param_name": "Source RF Power", "target_val": "3,200 W", "cost_impact": "+$1.80/wafer", "market": "FAB_P4_NAND"}},
+            {"id": "RCP_ALD_HIGHK_280", "name": "High-K ALD 증착온도 280℃ [+20℃ 상향] [원자층 제어 $0]", "type": "RecipeParam", "desc": "GAA 나노시트 게이트 산화막 누설전류 차단 및 치밀도 강화", "attributes": {"param_name": "Deposition Temp", "target_val": "280 ℃ (HZO Film)", "cost_impact": "$0 (Tuning)", "market": "FAB_S5_FOUNDRY"}},
+            {"id": "RCP_CLEAN_SCCO2", "name": "초임계 CO2 건조 세정 [패턴붕괴 방지] [특수가스비 +$3.10]", "type": "RecipeParam", "desc": "표면장력 Zero 초임계 유체로 1b nm 초미세 패턴 쓰러짐 완벽 방지", "attributes": {"param_name": "Drying Method", "target_val": "Supercritical CO2 (73.8bar, 31.1℃)", "cost_impact": "+$3.10/wafer", "market": "FAB_P3_DRAM"}},
+            {"id": "FAB_P3_DRAM", "name": "평택 P3 (1b nm DRAM 생산라인)", "type": "FabLine", "desc": "12나노급 1b nm EUV 5개 레이어 적용 첨단 D램 양산 팹", "attributes": {"code": "FAB_P3_DRAM", "site": "Pyeongtaek Campus", "cleanroom": "Class 1", "capacity": "150k wpm"}},
+            {"id": "FAB_P4_NAND", "name": "평택 P4 (V9 300+단 NAND 생산라인)", "type": "FabLine", "desc": "300단 이상 더블 스택 HARC 에칭 적용 초고용량 V-NAND 팹", "attributes": {"code": "FAB_P4_NAND", "site": "Pyeongtaek Campus", "cleanroom": "Class 1", "capacity": "120k wpm"}},
+            {"id": "FAB_S5_FOUNDRY", "name": "화성 S5 (SF3 3nm GAA 파운드리 라인)", "type": "FabLine", "desc": "MBCFET GAA(Gate-All-Around) 3세대 차세대 시스템반도체 팹", "attributes": {"code": "FAB_S5_FOUNDRY", "site": "Hwaseong Campus", "cleanroom": "Class 0.1", "capacity": "45k wpm"}},
+            {"id": "YIELD_DEFECT_REDUCE", "name": "마이크로 브릿지 결함률 18% 감소 [연 180억원 절감]", "type": "YieldImpact", "desc": "EUV 노광량 최적화로 라인 에지 러프니스(LER) 및 쇼트 불량 획기적 억제", "attributes": {"defect_reduction": "-18.4%", "annual_savings": "180억원", "yield_gain": "+1.8%p"}},
+            {"id": "YIELD_HOLE_TILT_FIX", "name": "HARC 에칭 틸트 불량 제로화 [수율 +3.2%p 향상]", "type": "YieldImpact", "desc": "극저온 플라즈마 제어로 300단 채널 홀 기울어짐 및 벤딩 결함 완벽 차단", "attributes": {"tilt_angle": "< 0.1 deg", "yield_gain": "+3.2%p", "economic_value": "연 260억원"}},
+            {"id": "YIELD_LEAKAGE_SUPPRESS", "name": "GAA 게이트 누설전류 35% 차단 [소비전력 -12%]", "type": "YieldImpact", "desc": "High-K 박막 치밀도 증가로 오프스테이트 누설전류 억제 및 수명 2배 증대", "attributes": {"leakage_reduction": "-35.2%", "power_saving": "-12.0%", "reliability": "10-Year MTBF"}},
+            {"id": "YIELD_PATTERN_COLLAPSE", "name": "1b nm 커패시터 패턴 붕괴 불량 제로 [수율 +2.5%p]", "type": "YieldImpact", "desc": "초임계 CO2 건조 적용으로 모세관 현상에 의한 미세 기둥 쓰러짐 방지", "attributes": {"collapse_rate": "0.00 ppm", "yield_gain": "+2.5%p", "cost_avoidance": "연 140억원"}},
+            {"id": "EQ_ASML_NXE3800", "name": "ASML Twinscan NXE:3800F EUV [장비가 $220M] (+900W 광원)", "type": "EquipmentSpec", "desc": "0.33 NA, 시간당 220매(WPH) 고생산성 High-Dose 극자외선 노광 시스템", "attributes": {"vendor": "ASML", "wavelength": "13.5 nm", "eq_price": "$220M", "throughput": "220 WPH"}},
+            {"id": "EQ_PELLICLE_CNT", "name": "Carbon Nanotube EUV 펠리클 (+투과율 92%)", "type": "EquipmentSpec", "desc": "EUV 고출력(600W+) 광원 열변형 방지 및 92% 이상 고투과율 탄소나노튜브 펠리클", "attributes": {"type": "CNT Pellicle", "transmittance": "92.4%", "heat_limit": "800 W"}},
+            {"id": "EQ_LAM_CRYO_ETCHER", "name": "Lam Research 극저온 유전체 식각 챔버 (+동기화 RF)", "type": "EquipmentSpec", "desc": "극저온 -70℃ 냉각 정전척(ESC) 및 초고주파 Dual RF 펄스 제어 챔버", "attributes": {"vendor": "Lam Research", "temp_range": "-70℃ ~ +60℃", "rf_frequency": "60MHz/2MHz Dual"}},
+            {"id": "EQ_TEL_INDY_ALD", "name": "TEL Certas LEAGEND High-K ALD [초정밀 0.1Å 제어]", "type": "EquipmentSpec", "desc": "3D GAA MBCFET 다층 채널 틈새 100% 균일 Conformal 원자층 증착 장비", "attributes": {"vendor": "Tokyo Electron (TEL)", "step_coverage": "99.8%", "film_uniformity": "< 0.5%"}}
+        ]
+
+        edges = [
+            {"source": "RCP_EUV_DOSE_45", "target": "PROC_PHOTO", "relation": "BELONGS_TO", "desc": "포토/노광 공정 소속"},
+            {"source": "RCP_EUV_FOCUS_OFFSET", "target": "PROC_PHOTO", "relation": "BELONGS_TO", "desc": "포토/노광 공정 소속"},
+            {"source": "RCP_ETCH_CRYO_60", "target": "PROC_ETCH", "relation": "BELONGS_TO", "desc": "플라즈마 식각 공정 소속"},
+            {"source": "RCP_ETCH_RF_POWER", "target": "PROC_ETCH", "relation": "BELONGS_TO", "desc": "플라즈마 식각 공정 소속"},
+            {"source": "RCP_ALD_HIGHK_280", "target": "PROC_DEPO", "relation": "BELONGS_TO", "desc": "박막 증착 공정 소속"},
+            {"source": "RCP_CLEAN_SCCO2", "target": "PROC_CLEAN", "relation": "BELONGS_TO", "desc": "세정 공정 소속"},
+            {"source": "RCP_EUV_DOSE_45", "target": "FAB_P3_DRAM", "relation": "RUNS_ON", "desc": "평택 P3 DRAM 라인 적용"},
+            {"source": "RCP_EUV_FOCUS_OFFSET", "target": "FAB_P3_DRAM", "relation": "RUNS_ON", "desc": "평택 P3 DRAM 라인 적용"},
+            {"source": "RCP_ETCH_CRYO_60", "target": "FAB_P4_NAND", "relation": "RUNS_ON", "desc": "평택 P4 NAND 라인 적용"},
+            {"source": "RCP_ETCH_RF_POWER", "target": "FAB_P4_NAND", "relation": "RUNS_ON", "desc": "평택 P4 NAND 라인 적용"},
+            {"source": "RCP_ALD_HIGHK_280", "target": "FAB_S5_FOUNDRY", "relation": "RUNS_ON", "desc": "화성 S5 3nm 파운드리 적용"},
+            {"source": "RCP_CLEAN_SCCO2", "target": "FAB_P3_DRAM", "relation": "RUNS_ON", "desc": "평택 P3 DRAM 라인 적용"},
+            {"source": "RCP_EUV_DOSE_45", "target": "EQ_ASML_NXE3800", "relation": "CONTROLS_EQUIPMENT", "desc": "ASML EUV 노광기 파라미터 제어"},
+            {"source": "RCP_EUV_DOSE_45", "target": "EQ_PELLICLE_CNT", "relation": "CONTROLS_EQUIPMENT", "desc": "CNT 펠리클 투과율 제어"},
+            {"source": "RCP_ETCH_CRYO_60", "target": "EQ_LAM_CRYO_ETCHER", "relation": "CONTROLS_EQUIPMENT", "desc": "Lam 극저온 에칭 챔버 제어"},
+            {"source": "RCP_ALD_HIGHK_280", "target": "EQ_TEL_INDY_ALD", "relation": "CONTROLS_EQUIPMENT", "desc": "TEL High-K ALD 챔버 제어"},
+            {"source": "PROC_PHOTO", "target": "YIELD_DEFECT_REDUCE", "relation": "AFFECTS_YIELD", "desc": "EUV 노광 불량 억제 및 수율 개선"},
+            {"source": "PROC_ETCH", "target": "YIELD_HOLE_TILT_FIX", "relation": "AFFECTS_YIELD", "desc": "300단 HARC 틸트 결함 제로화"},
+            {"source": "PROC_DEPO", "target": "YIELD_LEAKAGE_SUPPRESS", "relation": "AFFECTS_YIELD", "desc": "3nm GAA 누설전류 억제"},
+            {"source": "PROC_CLEAN", "target": "YIELD_PATTERN_COLLAPSE", "relation": "AFFECTS_YIELD", "desc": "초임계 세정 패턴 붕괴 방지"}
         ]
 
     return nodes, edges, domain_meta
@@ -659,7 +776,7 @@ def get_native_tables(domain: str) -> dict:
                 {"category_id": "BC_CAMPING_TENT", "promo_id": "PROMO_OUTDOOR_FEST", "promo_title": "아웃도어 페스타 증정 행사", "discount_rate": "그라운드시트 증정", "discount_val": "120,000원 상당 증정", "period": "2025-05-31까지", "weight_info": 0.1, "weight_purchase": 0.9}
             ])
         }
-    else:
+    elif "모바일" in domain or "요금제" in domain or "telco" in domain.lower():
         return {
             "dim_plan_family (요금제 패밀리 마스터)": pd.DataFrame([
                 {"family_id": "PF_5G_PREMIER", "family_name": "5G 프리미어 패밀리", "network_type": "5G Postpaid", "target_tier": "Premium", "voice_sms": "기본 무제한"},
@@ -683,6 +800,46 @@ def get_native_tables(domain: str) -> dict:
                 {"plan_id": "PF_5G_PREMIER", "benefit_id": "BENEFIT_VIP_MEMBERSHIP", "benefit_name": "VVIP 영화 연 12회 무료", "monthly_value": "연 180,000원 상당", "ott_partner": "CGV / Megabox", "weight_info": 0.1, "weight_purchase": 0.9},
                 {"plan_id": "PF_5G_PREMIER", "benefit_id": "BENEFIT_FAMILY_COMBO", "benefit_name": "U+ 투게더 결합할인", "monthly_value": "회선당 최대 20,000원 할인", "ott_partner": "가족 결합", "weight_info": 0.1, "weight_purchase": 0.9},
                 {"plan_id": "PF_SENIOR_CARE", "benefit_id": "BENEFIT_SILVER_CARE", "benefit_name": "보이스피싱 안심 보험", "monthly_value": "최대 300만원 무상 보상", "ott_partner": "KB손해보험", "weight_info": 0.1, "weight_purchase": 0.9}
+            ])
+        }
+    else:
+        return {
+            "dim_process_stage (8대 제조공정 마스터)": pd.DataFrame([
+                {"process_id": "PROC_PHOTO", "stage_no": "03", "process_name": "포토/노광 공정 (Photolithography)", "tech_node": "1b nm / 3nm GAA", "key_metric": "CD Uniformity & Overlay", "fab_floor": "Cleanroom Bay 3F"},
+                {"process_id": "PROC_ETCH", "stage_no": "04", "process_name": "식각 공정 (Plasma Dry Etching)", "tech_node": "V9 300+단 NAND", "key_metric": "Selectivity & Tilt Angle", "fab_floor": "Cleanroom Bay 2F"},
+                {"process_id": "PROC_DEPO", "stage_no": "05", "process_name": "박막 증착 공정 (ALD / Thin Film)", "tech_node": "3nm GAA MBCFET", "key_metric": "Step Coverage & Breakdown", "fab_floor": "Cleanroom Bay 2F"},
+                {"process_id": "PROC_CLEAN", "stage_no": "02/06", "process_name": "세정 및 이온주입 (Clean & Implant)", "tech_node": "1b nm DRAM", "key_metric": "Particle Count (<0.01/cm²)", "fab_floor": "Cleanroom Bay 1F"}
+            ]),
+            "dim_recipe_param (공정 레시피/조건 마스터)": pd.DataFrame([
+                {"recipe_id": "RCP_EUV_DOSE_45", "process_id": "PROC_PHOTO", "recipe_code": "RCP_PHOTO_DOSE_45M", "param_name": "EUV 노광량 (Exposure Dose)", "target_value": "45 mJ/cm²", "cost_impact": "+$4.20/wafer", "market_fab": "FAB_P3_DRAM"},
+                {"recipe_id": "RCP_EUV_FOCUS_OFFSET", "process_id": "PROC_PHOTO", "recipe_code": "RCP_PHOTO_FOCUS_N5", "param_name": "초점 오프셋 (Focus Offset)", "target_value": "-5 nm", "cost_impact": "$0/wafer", "market_fab": "FAB_P3_DRAM"},
+                {"recipe_id": "RCP_ETCH_CRYO_60", "process_id": "PROC_ETCH", "recipe_code": "RCP_ETCH_CRYO_N60", "param_name": "챔버 온도 및 C4F8 가스비", "target_value": "-60℃ / 1.25", "cost_impact": "+$8.50/wafer", "market_fab": "FAB_P4_NAND"},
+                {"recipe_id": "RCP_ETCH_RF_POWER", "process_id": "PROC_ETCH", "recipe_code": "RCP_ETCH_RF_3200W", "param_name": "Source Dual RF 파워", "target_value": "3,200 W", "cost_impact": "+$1.80/wafer", "market_fab": "FAB_P4_NAND"},
+                {"recipe_id": "RCP_ALD_HIGHK_280", "process_id": "PROC_DEPO", "recipe_code": "RCP_ALD_HZO_280C", "param_name": "High-K HZO 증착 온도", "target_value": "280 ℃", "cost_impact": "$0/wafer", "market_fab": "FAB_S5_FOUNDRY"},
+                {"recipe_id": "RCP_CLEAN_SCCO2", "process_id": "PROC_CLEAN", "recipe_code": "RCP_CLEAN_SCCO2_DRY", "param_name": "초임계 CO2 건조 조건", "target_value": "73.8 bar / 31.1 ℃", "cost_impact": "+$3.10/wafer", "market_fab": "FAB_P3_DRAM"}
+            ]),
+            "dim_fab_line (생산 팹 라인 마스터)": pd.DataFrame([
+                {"fab_id": "FAB_P3_DRAM", "fab_code": "P3-DRAM", "fab_name": "평택 P3 (1b nm DRAM 라인)", "site_location": "평택 캠퍼스", "cleanroom_grade": "Class 1", "capacity_wpm": "150k WPM"},
+                {"fab_id": "FAB_P4_NAND", "fab_code": "P4-NAND", "fab_name": "평택 P4 (V9 300+단 NAND 라인)", "site_location": "평택 캠퍼스", "cleanroom_grade": "Class 1", "capacity_wpm": "120k WPM"},
+                {"fab_id": "FAB_S5_FOUNDRY", "fab_code": "S5-GAA", "fab_name": "화성 S5 (SF3 3nm GAA 파운드리)", "site_location": "화성 캠퍼스", "cleanroom_grade": "Class 0.1", "capacity_wpm": "45k WPM"}
+            ]),
+            "dim_equipment_spec (설비/챔버 스펙 마스터)": pd.DataFrame([
+                {"equipment_id": "EQ_ASML_NXE3800", "equipment_name": "ASML Twinscan NXE:3800F EUV", "vendor": "ASML", "unit_price_usd": "$220,000,000", "control_parameter": "13.5nm 파장 / 900W 광원 / 220 WPH"},
+                {"equipment_id": "EQ_PELLICLE_CNT", "equipment_name": "Carbon Nanotube EUV 펠리클", "vendor": "삼성전자/협력사", "unit_price_usd": "$45,000", "control_parameter": "투과율 92.4% / 열변형 800W 한계"},
+                {"equipment_id": "EQ_LAM_CRYO_ETCHER", "equipment_name": "Lam Research 극저온 유전체 식각기", "vendor": "Lam Research", "unit_price_usd": "$14,500,000", "control_parameter": "-70℃ ~ +60℃ 냉각 ESC / 60MHz Dual RF"},
+                {"equipment_id": "EQ_TEL_INDY_ALD", "equipment_name": "TEL Certas LEAGEND High-K ALD", "vendor": "Tokyo Electron", "unit_price_usd": "$11,200,000", "control_parameter": "0.1Å 정밀 제어 / Step Coverage 99.8%"}
+            ]),
+            "rel_recipe_equipment (레시피-설비 매핑 테이블)": pd.DataFrame([
+                {"recipe_id": "RCP_EUV_DOSE_45", "equipment_id": "EQ_ASML_NXE3800", "parameter_setting": "광원 900W + Scan Speed 연동", "weight_purchase": 0.1, "weight_info": 0.9},
+                {"recipe_id": "RCP_EUV_DOSE_45", "equipment_id": "EQ_PELLICLE_CNT", "parameter_setting": "고내열 CNT 펠리클 장착", "weight_purchase": 0.1, "weight_info": 0.9},
+                {"recipe_id": "RCP_ETCH_CRYO_60", "equipment_id": "EQ_LAM_CRYO_ETCHER", "parameter_setting": "ESC 칠러 -60℃ 고정", "weight_purchase": 0.1, "weight_info": 0.9},
+                {"recipe_id": "RCP_ALD_HIGHK_280", "equipment_id": "EQ_TEL_INDY_ALD", "parameter_setting": "히터 블록 280℃ 균일화", "weight_purchase": 0.1, "weight_info": 0.9}
+            ]),
+            "rel_process_yield (공정-수율 영향도 매핑 테이블)": pd.DataFrame([
+                {"process_id": "PROC_PHOTO", "impact_id": "YIELD_DEFECT_REDUCE", "correlation_score": 0.94, "defect_reduction": "-18.4%", "annual_savings": "연 180억원", "weight_info": 0.1, "weight_purchase": 0.9},
+                {"process_id": "PROC_ETCH", "impact_id": "YIELD_HOLE_TILT_FIX", "correlation_score": 0.96, "defect_reduction": "틸트 불량 0%", "annual_savings": "연 260억원", "weight_info": 0.1, "weight_purchase": 0.9},
+                {"process_id": "PROC_DEPO", "impact_id": "YIELD_LEAKAGE_SUPPRESS", "correlation_score": 0.91, "defect_reduction": "누설전류 -35%", "annual_savings": "수명 2배 증대", "weight_info": 0.1, "weight_purchase": 0.9},
+                {"process_id": "PROC_CLEAN", "impact_id": "YIELD_PATTERN_COLLAPSE", "correlation_score": 0.98, "defect_reduction": "패턴 쓰러짐 0ppm", "annual_savings": "연 140억원", "weight_info": 0.1, "weight_purchase": 0.9}
             ])
         }
 
@@ -878,7 +1035,7 @@ def generate_bigquery_gql(seed_node_id: str, intent: str, max_hop: int, weight_t
     s.name AS spec_feature,
     s.option_price AS spec_grade,
     e.weight AS option_priority_cost"""
-    else:
+    elif domain_id == "telco":
         if intent == "INFO_SEARCH":
             return_clause = """RETURN 
     p.name AS primary_family,
@@ -894,11 +1051,27 @@ def generate_bigquery_gql(seed_node_id: str, intent: str, max_hop: int, weight_t
     s.name AS spec_allowance,
     s.extra_fee AS extra_overage_cost,
     e.weight AS option_priority_cost"""
+    else:
+        if intent == "INFO_SEARCH":
+            return_clause = """RETURN 
+    p.name AS process_stage,
+    m.name AS yield_impact_metric,
+    m.annual_savings AS annual_cost_benefit,
+    m.desc AS yield_impact_details,
+    e.weight AS relevance_cost"""
+        else:
+            return_clause = """RETURN 
+    p.name AS process_stage,
+    c.name AS recipe_parameter,
+    c.cost_impact AS recipe_cost_delta,
+    s.name AS equipment_spec,
+    s.eq_price AS equipment_capex,
+    e.weight AS control_priority_cost"""
 
     if intent == "INFO_SEARCH":
         gql_standard = f"""-- =========================================================================
--- Google Cloud BigQuery GQL: [{domain_meta['name']}] 정보 탐색 의도 (INFO_SEARCH)
--- 목적: {mkt_type} 프로모션 및 마케팅 소구점({rel_mkt}) 우선 추출 (할인/혜택가 포함)
+-- Google Cloud BigQuery GQL: [{domain_meta['name']}] 정보/영향도 탐색 의도 (INFO_SEARCH)
+-- 목적: {mkt_type} 영향도 및 메트릭({rel_mkt}) 우선 추출
 -- =========================================================================
 GRAPH `{dataset}`
 MATCH (p:{seed_type} {{name: '{seed_name}'}})-[e:{rel_mkt}]->(m:{mkt_type})
@@ -908,8 +1081,8 @@ ORDER BY
     relevance_cost ASC;"""
     else:
         gql_standard = f"""-- =========================================================================
--- Google Cloud BigQuery GQL: [{domain_meta['name']}] 실구매 상담 의도 (PURCHASE_INTENT)
--- 목적: 세부 SKU/코드별 출고가 및 옵션가({rel_spec}) 정밀 추출
+-- Google Cloud BigQuery GQL: [{domain_meta['name']}] 레시피/설비 제어 의도 (PURCHASE_INTENT)
+-- 목적: 세부 파라미터별 변경 비용 및 설비 스펙({rel_spec}) 정밀 추출
 -- =========================================================================
 GRAPH `{dataset}`
 MATCH (p:{seed_type} {{name: '{seed_name}'}})<-[:{rel_belongs}]-(c:{child_type})-[e:{rel_spec}]->(s:{spec_type})
@@ -1066,7 +1239,7 @@ CREATE OR REPLACE PROPERTY GRAPH `gcp-project-ecommerce.catalog_ontology.product
       PROPERTIES (weight_info, weight_purchase, discount_rate)
   );"""
 
-    else:
+    elif "모바일" in domain or "요금제" in domain or "telco" in domain.lower():
         return """-- =========================================================================
 -- 3. BigQuery Property Graph 정의: 모바일 요금제 도메인 (Telco)
 -- 데이터셋: `gcp-project-telco.plan_ontology.telco_plan_semantic_graph`
@@ -1117,6 +1290,59 @@ CREATE OR REPLACE PROPERTY GRAPH `gcp-project-telco.plan_ontology.telco_plan_sem
       DESTINATION KEY (benefit_id) REFERENCES dim_marketing_benefit(benefit_id)
       LABEL HAS_BENEFIT 
       PROPERTIES (weight_info, weight_purchase, monthly_value)
+  );"""
+
+    else:
+        return """-- =========================================================================
+-- 4. BigQuery Property Graph 정의: 반도체 8대 공정 및 레시피 (Semiconductor)
+-- 데이터셋: `gcp-project-semicon.fab_ontology.semiconductor_process_graph`
+-- =========================================================================
+CREATE OR REPLACE PROPERTY GRAPH `gcp-project-semicon.fab_ontology.semiconductor_process_graph`
+  NODE TABLES (
+    dim_process_stage 
+      KEY (process_id) 
+      LABEL ProcessStage 
+      PROPERTIES (stage_no, process_name, tech_node, key_metric),
+    dim_recipe_param 
+      KEY (recipe_id) 
+      LABEL RecipeParam 
+      PROPERTIES (recipe_code, param_name, target_value, cost_impact, market_fab),
+    dim_fab_line 
+      KEY (fab_id) 
+      LABEL FabLine 
+      PROPERTIES (fab_code, fab_name, site_location, cleanroom_grade),
+    dim_equipment_spec 
+      KEY (equipment_id) 
+      LABEL EquipmentSpec 
+      PROPERTIES (equipment_name, vendor, unit_price_usd, control_parameter),
+    dim_yield_impact 
+      KEY (impact_id) 
+      LABEL YieldImpact 
+      PROPERTIES (metric_title, defect_reduction, annual_savings, yield_gain)
+  )
+  EDGE TABLES (
+    dim_recipe_param AS rel_recipe_process 
+      KEY (recipe_id, process_id)
+      SOURCE KEY (recipe_id) REFERENCES dim_recipe_param(recipe_id)
+      DESTINATION KEY (process_id) REFERENCES dim_process_stage(process_id)
+      LABEL BELONGS_TO,
+    dim_recipe_param AS rel_recipe_fab 
+      KEY (recipe_id, market_fab)
+      SOURCE KEY (recipe_id) REFERENCES dim_recipe_param(recipe_id)
+      DESTINATION KEY (market_fab) REFERENCES dim_fab_line(fab_id)
+      LABEL RUNS_ON,
+    rel_recipe_equipment 
+      KEY (recipe_id, equipment_id)
+      SOURCE KEY (recipe_id) REFERENCES dim_recipe_param(recipe_id)
+      DESTINATION KEY (equipment_id) REFERENCES dim_equipment_spec(equipment_id)
+      LABEL CONTROLS_EQUIPMENT 
+      PROPERTIES (weight_purchase, weight_info, parameter_setting),
+    rel_process_yield 
+      KEY (process_id, impact_id)
+      SOURCE KEY (process_id) REFERENCES dim_process_stage(process_id)
+      DESTINATION KEY (impact_id) REFERENCES dim_yield_impact(impact_id)
+      LABEL AFFECTS_YIELD 
+      PROPERTIES (weight_info, weight_purchase, correlation_score)
   );"""
 
 
@@ -1203,7 +1429,7 @@ def build_llm_context_and_response(intent: str, seed_node_id: str, active_nodes:
 2. **나이키 페가수스 41 [159,000원]**: **ReactX 쿠셔닝 폼 (+친환경 에코)** 탑재로 일상 러닝 데일리 트레이너 추천.
 3. **어메니티 돔 4인용 텐트 [498,000원]**: **내수압 3,000mm 립스탑 (+고내수압 원단)** + **두랄루민 7001 폴대 (+초경량)** 기본 적용."""
 
-    else:
+    elif domain_id == "telco":
         if intent == "INFO_SEARCH":
             llm_text = f"""### 📱 [모바일 5G 요금제 부가 혜택 & 멤버십 가치 환산]
 고객님께 적합한 5G 요금제 무료 혜택 및 연간 환산 가치입니다:
@@ -1216,6 +1442,29 @@ def build_llm_context_and_response(intent: str, seed_node_id: str, active_nodes:
 1. **5G 프리미어 슈퍼 [월 115,000원]**: **데이터 완전무제한 (+테더링 50GB 공유, 추가과금 0원)** + **스마트기기 2회선 (+월 22,000원 무료)**.
 2. **너겟 5G 청년 무제한 [월 59,000원]**: 만 34세 이하 무약정 온라인 요금제, 기본 12GB 소진 후에도 **5Mbps QoS (추가요금 無, FHD 유튜브 가능)**.
 3. **5G 시니어 49 [월 49,000원]**: 만 65세 이상 어르신 전용, 기본 15GB + **보이스피싱 안심 보험 (최대 300만원 무상 보상)** 무료."""
+
+    else:
+        # 반도체 8대 공정 (Semiconductor)
+        if intent == "INFO_SEARCH":
+            llm_text = f"""### 🔬 [삼성전자DS 8대 공정 레시피 변경에 따른 수율 및 품질 영향도 분석]
+선택된 레시피 변경 파라미터에 대한 지식 그래프 온톨로지 기반 영향도 시뮬레이션 결과입니다:
+1. **EUV 포토 공정 (Dose 45mJ/cm² 상향)**:
+   - **품질 영향**: 라인 에지 러프니스(LER) 및 마이크로 브릿지 결함률 **18.4% 감소**, 수율 **+1.8%p 개선**.
+   - **비용 영향**: 연간 웨이퍼 폐기 비용 **180억원 절감** (웨이퍼당 추가 공정비 +$4.20 상쇄).
+2. **HARC 고선택비 플라즈마 식각 (극저온 -60℃ / C4F8:CF4=1.25)**:
+   - **품질 영향**: 300단 V-NAND 채널 홀 기울어짐/휨 불량 차단으로 **수율 +3.2%p 향상**.
+   - **경제적 가치**: 연간 수율 개선 효과 **260억원 창출**.
+3. **초임계 CO2 건조 세정**: 1b nm D램 커패시터 패턴 붕괴 결함률 **Zero 달성** (수율 +2.5%p 개선)."""
+        else:
+            llm_text = f"""### ⚙️ [삼성전자DS 8대 공정 설비 챔버 스펙 및 레시피 제어 조건 분석]
+레시피 변경을 적용하기 위한 핵심 반도체 제조 장비 사양 및 챔버 제어 스펙입니다:
+1. **ASML Twinscan NXE:3800F ($220M / 220 WPH)**:
+   - **제어 스펙**: 13.5nm 파장 High-Dose 극자외선 노광 시스템, 시간당 220매 고생산성 처리.
+   - **펠리클 사양**: 탄소나노튜브(CNT) 펠리클 투과율 92.4% 유지 및 800W 고출력 광원 열변형 한계 충족.
+2. **Lam Research 극저온 유전체 식각기 ($14.5M)**:
+   - **챔버 스펙**: -70℃~+60℃ 정전척(ESC) 냉각 칠러 제어 및 60MHz/2MHz Dual RF 펄스 동기화.
+3. **TEL Certas LEAGEND High-K ALD ($11.2M)**:
+   - **박막 스펙**: 3nm GAA MBCFET 다층 채널 280℃ 균일 증착 (0.1Å 정밀 제어, Step Coverage 99.8%)."""
 
     return context_payload, llm_text, extracted_specs, extracted_mkt, extracted_children
 
@@ -2187,7 +2436,8 @@ def main():
     domain_options = [
         "🚗 자동차 (Automotive)",
         "🛍️ 이커머스 (E-Commerce)",
-        "📱 모바일 요금제 (Telco)"
+        "📱 모바일 요금제 (Telco)",
+        "🔬 반도체 8대 공정 (Semiconductor)"
     ]
 
     def on_domain_change():
