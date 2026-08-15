@@ -1,6 +1,6 @@
 """
 Google Cloud BigQuery Graph & 시맨틱 온톨로지 탐색기 (Multi-Domain Knowledge Graph)
-- 4대 비즈니스 도메인: 🚗 자동차 (Automotive) / 🛍️ 이커머스 (E-Commerce) / 📱 모바일 요금제 (Telco) / 🔬 반도체 8대 공정 (Semiconductor)
+- 5대 비즈니스 도메인: 🚗 자동차 (Automotive) / 🛍️ 이커머스 (E-Commerce) / 📱 모바일 요금제 (Telco) / 🔬 반도체 8대 공정 (Semiconductor) / 🎓 광교 학원가 (Edu Academy)
 - 10대 IDE 테마 실시간 전환 (Light 4종 + Dark 6종)
 - 4대 시각화 렌더러 (PyVis, Cytoscape.js, 3D Force Graph, AntV G6)
 - BigQuery GQL & GoogleSQL GRAPH_TABLE 구문 강조 및 LLM Context Grounding 시뮬레이터 (단일 파일: app.py)
@@ -583,7 +583,7 @@ def generate_domain_data(domain: str):
             {"source": "PF_SENIOR_CARE", "target": "BENEFIT_SILVER_CARE", "relation": "HAS_BENEFIT", "desc": "금융사기 안심 보상 보험"}
         ]
 
-    else:
+    elif "반도체" in domain or "semiconductor" in domain.lower():
         # -------------------------------------------------------------
         # 도메인 4: 🔬 반도체 8대 공정 (Semiconductor / Fab Recipe Impact)
         # -------------------------------------------------------------
@@ -700,6 +700,122 @@ def generate_domain_data(domain: str):
             {"source": "PROC_CLEAN", "target": "YIELD_PATTERN_COLLAPSE", "relation": "AFFECTS_YIELD", "desc": "초임계 세정 패턴 붕괴 방지"}
         ]
 
+    else:
+        # -------------------------------------------------------------
+        # 도메인 5: 🎓 광교 학원가 교육 (Edu Academy / Gwanggyo Academies)
+        # -------------------------------------------------------------
+        domain_meta = {
+            "id": "edu_academy",
+            "name": "🎓 광교 학원가 (Edu Academy)",
+            "bq_dataset": "gcp-project-edu.academy_ontology.gwanggyo_edu_graph",
+            "parent_type": "SubjectCategory",
+            "parent_label": "SubjectCategory (교과목 단과영역)",
+            "child_type": "AcademyCourse",
+            "child_label": "AcademyCourse (광교중앙역 단과학원)",
+            "filter_type": "SchoolGrade",
+            "filter_label": "자녀 학년 (Target School Grade)",
+            "mkt_type": "AdmissionBenefit",
+            "mkt_label": "AdmissionBenefit (입시실적/무료진단)",
+            "spec_type": "CurriculumSpec",
+            "spec_label": "CurriculumSpec (수업방식/클리닉/위치)",
+            "rel_belongs": "BELONGS_TO",
+            "rel_filter": "TARGETS_GRADE",
+            "rel_mkt": "OFFERS_BENEFIT",
+            "rel_spec": "PROVIDES_CURRICULUM",
+            "filter_param_name": "자녀 학년 필터 (School Grade Constraint)",
+            "filter_options": ["GRADE_ELEM", "GRADE_MID", "GRADE_HIGH", "ALL"],
+            "filter_options_labels": {
+                "GRADE_ELEM": "초등 4~6학년 (Elementary)",
+                "GRADE_MID": "중등 1~3학년 (광교중/다산중/연무중)",
+                "GRADE_HIGH": "고등 1~3학년 (광교고/이의고/유신고/창현고)",
+                "ALL": "ALL (전체 학년 대상)"
+            },
+            "presets": [
+                {
+                    "label": "Preset 1: '광교중앙역 중등 심화수학 실적 및 무료 레벨테스트' (입시실적/무료진단)",
+                    "query": "광교중앙역 중등 심화수학 실적 및 무료 레벨테스트",
+                    "intent": "INFO_SEARCH",
+                    "seed": "SUBJ_MATH",
+                    "max_hop": 2,
+                    "weight_threshold": 0.50,
+                    "filter": "GRADE_MID"
+                },
+                {
+                    "label": "Preset 2: '고등 1등급 의치약대 과탐 심화반 수강료 및 1:1 클리닉' (수강료/클리닉 스펙)",
+                    "query": "고등 1등급 의치약대 과탐 심화반 수강료 및 1:1 클리닉",
+                    "intent": "PURCHASE_INTENT",
+                    "seed": "SUBJ_SCI",
+                    "max_hop": 2,
+                    "weight_threshold": 0.50,
+                    "filter": "GRADE_HIGH"
+                },
+                {
+                    "label": "Preset 3: '초등 어학원 셔틀버스 안심운행 및 원어민 몰입수업 혜택' (장학/셔틀혜택)",
+                    "query": "초등 어학원 셔틀버스 안심운행 및 원어민 몰입수업 혜택",
+                    "intent": "INFO_SEARCH",
+                    "seed": "SUBJ_ENG",
+                    "max_hop": 2,
+                    "weight_threshold": 0.50,
+                    "filter": "GRADE_ELEM"
+                },
+                {
+                    "label": "Preset 4: '수능 국어 킬러 비문학 독서 특강 및 주간 백지테스트 스펙' (수강료/관리 스펙)",
+                    "query": "수능 국어 킬러 비문학 독서 특강 및 주간 백지테스트 스펙",
+                    "intent": "PURCHASE_INTENT",
+                    "seed": "SUBJ_KOR",
+                    "max_hop": 2,
+                    "weight_threshold": 0.50,
+                    "filter": "GRADE_HIGH"
+                }
+            ]
+        }
+
+        nodes = [
+            {"id": "SUBJ_MATH", "name": "📐 수능/내신 심화 수학 (Mathematics)", "type": "SubjectCategory", "desc": "광교중앙역 1티어 초중고 사고력/내신 1등급/수능 킬러 수학 단과", "attributes": {"category": "수학", "target": "초·중·고 연계", "director": "서울대 수학교육과 강사진"}},
+            {"id": "SUBJ_SCI", "name": "🔬 의치약대 과탐 & 올림피아드 과학 (Science)", "type": "SubjectCategory", "desc": "물화생지 수능 만점 및 영재교/과고 대비 전문 과학관", "attributes": {"category": "과학탐구", "target": "중·고등", "lab": "실험실 및 의대 심화반 운영"}},
+            {"id": "SUBJ_ENG", "name": "📚 수능 1등급 & 원어민 몰입 영어 (English)", "type": "SubjectCategory", "desc": "초등 토플/디베이트부터 중고등 내신 서술형 및 수능완성 영어", "attributes": {"category": "영어", "target": "초·중·고", "native_speaker": "원어민 회화 & 입시 투트랙"}},
+            {"id": "SUBJ_KOR", "name": "📖 수능 비문학 독서 & 내신 국어논술 (Korean)", "type": "SubjectCategory", "desc": "광교/이의/유신고 기출 분석 및 수능 고난도 비문학 독해 훈련", "attributes": {"category": "국어/논술", "target": "중·고등", "curriculum": "EBS 연계 및 자체 기출 교재"}},
+            {"id": "ACAD_DEEP_MATH", "name": "깊은생각 광교센터 심화수학 [월 460,000원]", "type": "AcademyCourse", "desc": "광교중앙역 아브뉴프랑 맞은편, 5단계 레벨별 주 3회 3시간 맞춤 수업", "attributes": {"tuition_fee": "월 460,000원", "tuition_num": 460000, "sessions": "주 3회 (회당 180분)", "market": "GRADE_MID", "location": "광교중앙역 3번출구 도보 3분"}},
+            {"id": "ACAD_CMS_MATH", "name": "CMS 에듀 사고력 & KMO 수학 [월 420,000원]", "type": "AcademyCourse", "desc": "초등 융합 사고력 수학 및 영재교육원/올림피아드 입문반", "attributes": {"tuition_fee": "월 420,000원", "tuition_num": 420000, "sessions": "주 2회 (회당 150분)", "market": "GRADE_ELEM", "location": "광교중앙역 센트럴타운"}},
+            {"id": "ACAD_FUTURE_SCI", "name": "미래탐구 광교 의대과탐관 [월 480,000원]", "type": "AcademyCourse", "desc": "광교고/이의고 1등급 대비 물화생지 하이탑 및 수능 킬러문항 특강", "attributes": {"tuition_fee": "월 480,000원", "tuition_num": 480000, "sessions": "주 2회 (회당 200분)", "market": "GRADE_HIGH", "location": "광교중앙역 에듀타운 4층"}},
+            {"id": "ACAD_DYNA_ENG", "name": "정상어학원 CHESS & ACE 영어 [월 390,000원]", "type": "AcademyCourse", "desc": "초등 몰입 프레젠테이션 및 중등 수능 내신 100점 완벽 대비", "attributes": {"tuition_fee": "월 390,000원", "tuition_num": 390000, "sessions": "주 3회 (회당 120분)", "market": "GRADE_ELEM", "location": "광교 에듀타운 로데오거리"}},
+            {"id": "ACAD_ILUM_KOR", "name": "이룸 국어논술 수능전문학원 [월 360,000원]", "type": "AcademyCourse", "desc": "고등부 수능 국어 킬러 지문 정복 및 주간 오답클리닉", "attributes": {"tuition_fee": "월 360,000원", "tuition_num": 360000, "sessions": "주 1회 (회당 240분)", "market": "GRADE_HIGH", "location": "광교중앙역 푸르지오 월드스퀘어"}},
+            {"id": "GRADE_ELEM", "name": "초등 4~6학년 (Elementary School)", "type": "SchoolGrade", "desc": "사고력 수학, 영재원 대비, 원어민 디베이트 어학 집중기", "attributes": {"code": "GRADE_ELEM", "grades": "초4, 초5, 초6", "key_focus": "기초 개념 및 자기주도 학습 습관 형성"}},
+            {"id": "GRADE_MID", "name": "중등 1~3학년 (광교중/다산중/연무중)", "type": "SchoolGrade", "desc": "고등 선행, 내신 만점(A등급), 특목고/자사고 진학 집중기", "attributes": {"code": "GRADE_MID", "grades": "중1, 중2, 중3", "target_schools": "광교중, 다산중, 연무중, 이의중"}},
+            {"id": "GRADE_HIGH", "name": "고등 1~3학년 (광교고/이의고/유신고/창현고)", "type": "SchoolGrade", "desc": "학생부 종합 전교 1등 내신 및 수능 정시 1등급 완벽 대비", "attributes": {"code": "GRADE_HIGH", "grades": "고1, 고2, 고3", "target_schools": "광교고, 이의고, 유신고, 창현고, 수원외고"}},
+            {"id": "BENEFIT_SKY_PASS", "name": "2024 의치약학계열 & SKY 42명 합격 [입시 실적 1위]", "type": "AdmissionBenefit", "desc": "광교센터 단일 학원 기준 의대 14명, 서울대 9명, 연고대 19명 최다 배출", "attributes": {"pass_count": "42명 배출", "med_pass": "14명", "sky_pass": "28명", "achievement_rate": "수강생 38% 상위권 진학"}},
+            {"id": "BENEFIT_FREE_LEVELTEST", "name": "AI 정밀 진단평가 & 1:1 입시 컨설팅 무료 [10만원 상당 혜택]", "type": "AdmissionBenefit", "desc": "취약 단원 정밀 진단 및 2028 개편 대입 맞춤 로드맵 1회 무료 제공", "attributes": {"benefit_val": "100,000원 상당 무료", "consulting": "1:1 원장 직접 상담", "voucher": "진단평가 무료 응시권"}},
+            {"id": "BENEFIT_SHUTTLE_FREE", "name": "광교 전지역 안심 셔틀버스 무료 운행 (+라이브 위치 앱)", "type": "AdmissionBenefit", "desc": "광교중앙역-호수공원-상현-웰빙타운 전 노선 기사님 100% 직영 무료 운행", "attributes": {"shuttle_fee": "0원 (전액 무료)", "safety": "승하차 알림 SMS + 실시간 GPS 위치"}},
+            {"id": "BENEFIT_SIBLING_DISCOUNT", "name": "형제/자매 등록 및 2과목 수강 시 10% 장학 할인", "type": "AdmissionBenefit", "desc": "가구당 사교육비 부담 완화를 위한 패밀리 장학 혜택 지원", "attributes": {"discount_rate": "10% 장학할인", "monthly_savings": "월 4~8만원 절감"}},
+            {"id": "SPEC_1TO1_CLINIC", "name": "매주 1:1 전담 조교 오답 클리닉 (+기본포함 0원)", "type": "CurriculumSpec", "desc": "수업 후 당일 미통과 테스트 재시험 및 1:1 맞춤 첨삭 무한 피드백", "attributes": {"clinic_fee": "0원 (수강료 내 전액포함)", "clinic_time": "주 2회 90분", "tutors": "SKY 출신 전담 조교"}},
+            {"id": "SPEC_DAILY_TEST", "name": "일일 누적 백지테스트 & 학부모 카톡 리포트 (+주간 발송)", "type": "CurriculumSpec", "desc": "개념 암기 완벽 확인 및 출결·성적·오답률 실시간 모바일 리포트 전송", "attributes": {"report_cycle": "매주 금요일 정기 발송", "test_type": "누적 백지테스트 + 실전 모의고사"}},
+            {"id": "SPEC_NEAR_STATION", "name": "광교중앙역 3번출구 도보 3분 초역세권 (+안심통학 도보권)", "type": "CurriculumSpec", "desc": "신분당선 광교중앙역 및 버스환승센터 직결로 도보 안심 통학 가능", "attributes": {"walking_time": "도보 3분", "building": "에듀타운 프라자 4~6층", "access": "초역세권"}},
+            {"id": "SPEC_MED_PREP", "name": "의대 지망생 킬러문항 극상위권 특화반 (+월 15만원 추가옵션)", "type": "CurriculumSpec", "desc": "KMO 은상이상 및 수능 킬러 4점 문항 300제 집중 마스터링", "attributes": {"option_price": "월 150,000원", "materials": "자체 킬러 블랙라벨 N제", "class_size": "8명 소수정예"}}
+        ]
+
+        edges = [
+            {"source": "ACAD_DEEP_MATH", "target": "SUBJ_MATH", "relation": "BELONGS_TO", "desc": "수학 교과목 단과 소속"},
+            {"source": "ACAD_CMS_MATH", "target": "SUBJ_MATH", "relation": "BELONGS_TO", "desc": "수학 교과목 단과 소속"},
+            {"source": "ACAD_FUTURE_SCI", "target": "SUBJ_SCI", "relation": "BELONGS_TO", "desc": "과학탐구 교과목 소속"},
+            {"source": "ACAD_DYNA_ENG", "target": "SUBJ_ENG", "relation": "BELONGS_TO", "desc": "영어 교과목 소속"},
+            {"source": "ACAD_ILUM_KOR", "target": "SUBJ_KOR", "relation": "BELONGS_TO", "desc": "국어/논술 교과목 소속"},
+            {"source": "ACAD_DEEP_MATH", "target": "GRADE_MID", "relation": "TARGETS_GRADE", "desc": "중등부 타겟 개설"},
+            {"source": "ACAD_CMS_MATH", "target": "GRADE_ELEM", "relation": "TARGETS_GRADE", "desc": "초등부 타겟 개설"},
+            {"source": "ACAD_FUTURE_SCI", "target": "GRADE_HIGH", "relation": "TARGETS_GRADE", "desc": "고등부 의대반 타겟 개설"},
+            {"source": "ACAD_DYNA_ENG", "target": "GRADE_ELEM", "relation": "TARGETS_GRADE", "desc": "초등 어학 타겟 개설"},
+            {"source": "ACAD_ILUM_KOR", "target": "GRADE_HIGH", "relation": "TARGETS_GRADE", "desc": "고등 국어 타겟 개설"},
+            {"source": "ACAD_DEEP_MATH", "target": "SPEC_1TO1_CLINIC", "relation": "PROVIDES_CURRICULUM", "desc": "1:1 오답 클리닉 제공"},
+            {"source": "ACAD_DEEP_MATH", "target": "SPEC_NEAR_STATION", "relation": "PROVIDES_CURRICULUM", "desc": "광교중앙역 도보 3분"},
+            {"source": "ACAD_FUTURE_SCI", "target": "SPEC_MED_PREP", "relation": "PROVIDES_CURRICULUM", "desc": "의대 킬러 특화반 운영"},
+            {"source": "ACAD_DYNA_ENG", "target": "SPEC_DAILY_TEST", "relation": "PROVIDES_CURRICULUM", "desc": "일일 누적테스트 리포트"},
+            {"source": "ACAD_ILUM_KOR", "target": "SPEC_1TO1_CLINIC", "relation": "PROVIDES_CURRICULUM", "desc": "1:1 논술 첨삭 클리닉"},
+            {"source": "SUBJ_MATH", "target": "BENEFIT_SKY_PASS", "relation": "OFFERS_BENEFIT", "desc": "SKY/의대 최다 합격 실적"},
+            {"source": "SUBJ_SCI", "target": "BENEFIT_SKY_PASS", "relation": "OFFERS_BENEFIT", "desc": "의치약대 합격 실적"},
+            {"source": "SUBJ_ENG", "target": "BENEFIT_SHUTTLE_FREE", "relation": "OFFERS_BENEFIT", "desc": "광교 전지역 안심 셔틀버스"},
+            {"source": "SUBJ_KOR", "target": "BENEFIT_FREE_LEVELTEST", "relation": "OFFERS_BENEFIT", "desc": "1:1 입시 컨설팅 무료"},
+            {"source": "SUBJ_MATH", "target": "BENEFIT_SIBLING_DISCOUNT", "relation": "OFFERS_BENEFIT", "desc": "형제/자매 10% 장학 할인"}
+        ]
+
     return nodes, edges, domain_meta
 
 
@@ -802,7 +918,7 @@ def get_native_tables(domain: str) -> dict:
                 {"plan_id": "PF_SENIOR_CARE", "benefit_id": "BENEFIT_SILVER_CARE", "benefit_name": "보이스피싱 안심 보험", "monthly_value": "최대 300만원 무상 보상", "ott_partner": "KB손해보험", "weight_info": 0.1, "weight_purchase": 0.9}
             ])
         }
-    else:
+    elif "반도체" in domain or "semiconductor" in domain.lower():
         return {
             "dim_process_stage (8대 제조공정 마스터)": pd.DataFrame([
                 {"process_id": "PROC_PHOTO", "stage_no": "03", "process_name": "포토/노광 공정 (Photolithography)", "tech_node": "1b nm / 3nm GAA", "key_metric": "CD Uniformity & Overlay", "fab_floor": "Cleanroom Bay 3F"},
@@ -840,6 +956,51 @@ def get_native_tables(domain: str) -> dict:
                 {"process_id": "PROC_ETCH", "impact_id": "YIELD_HOLE_TILT_FIX", "correlation_score": 0.96, "defect_reduction": "틸트 불량 0%", "annual_savings": "연 260억원", "weight_info": 0.1, "weight_purchase": 0.9},
                 {"process_id": "PROC_DEPO", "impact_id": "YIELD_LEAKAGE_SUPPRESS", "correlation_score": 0.91, "defect_reduction": "누설전류 -35%", "annual_savings": "수명 2배 증대", "weight_info": 0.1, "weight_purchase": 0.9},
                 {"process_id": "PROC_CLEAN", "impact_id": "YIELD_PATTERN_COLLAPSE", "correlation_score": 0.98, "defect_reduction": "패턴 쓰러짐 0ppm", "annual_savings": "연 140억원", "weight_info": 0.1, "weight_purchase": 0.9}
+            ])
+        }
+    else:
+        return {
+            "dim_subject_category (교과목 단과영역 마스터)": pd.DataFrame([
+                {"subject_id": "SUBJ_MATH", "subject_name": "수능/내신 심화 수학", "category": "Mathematics", "target_system": "초등사고력 ~ 수능 킬러", "faculty": "서울대 수학교육과 출신"},
+                {"subject_id": "SUBJ_SCI", "subject_name": "의치약대 과탐 & 올림피아드", "category": "Science", "target_system": "중등 KMO ~ 고등 과탐 8과목", "faculty": "서울대/카이스트 이학박사"},
+                {"subject_id": "SUBJ_ENG", "subject_name": "수능 1등급 & 원어민 디베이트", "category": "English", "target_system": "초등 토플 ~ 고등 수능 100점", "faculty": "북미 아이비리그 & 대치동 스타강사"},
+                {"subject_id": "SUBJ_KOR", "subject_name": "수능 비문학 독서 & 내신국어", "category": "Korean", "target_system": "고등 수능 비문학 & 논술", "faculty": "국어국문학 석사 & EBS 연계분석"}
+            ]),
+            "dim_academy_course (학원 강좌/수강료 마스터)": pd.DataFrame([
+                {"academy_id": "ACAD_DEEP_MATH", "subject_id": "SUBJ_MATH", "academy_name": "깊은생각 광교센터 심화수학", "tuition_fee": 460000, "tuition_formatted": "월 460,000원", "location": "광교중앙역 3번출구 도보 3분", "target_grade": "GRADE_MID"},
+                {"academy_id": "ACAD_CMS_MATH", "subject_id": "SUBJ_MATH", "academy_name": "CMS 에듀 사고력 & KMO 수학", "tuition_fee": 420000, "tuition_formatted": "월 420,000원", "location": "광교중앙역 센트럴타운", "target_grade": "GRADE_ELEM"},
+                {"academy_id": "ACAD_FUTURE_SCI", "subject_id": "SUBJ_SCI", "academy_name": "미래탐구 광교 의대과탐관", "tuition_fee": 480000, "tuition_formatted": "월 480,000원", "location": "광교 에듀타운 4층", "target_grade": "GRADE_HIGH"},
+                {"academy_id": "ACAD_DYNA_ENG", "subject_id": "SUBJ_ENG", "academy_name": "정상어학원 CHESS & ACE 영어", "tuition_fee": 390000, "tuition_formatted": "월 390,000원", "location": "에듀타운 로데오거리", "target_grade": "GRADE_ELEM"},
+                {"academy_id": "ACAD_ILUM_KOR", "subject_id": "SUBJ_KOR", "academy_name": "이룸 국어논술 수능전문학원", "tuition_fee": 360000, "tuition_formatted": "월 360,000원", "location": "광교 푸르지오 월드스퀘어", "target_grade": "GRADE_HIGH"}
+            ]),
+            "dim_school_grade (자녀 학년/학교 마스터)": pd.DataFrame([
+                {"grade_id": "GRADE_ELEM", "grade_name": "초등 4~6학년 (Elementary)", "target_schools": "산의초, 신풍초, 다산초, 광교초", "main_program": "사고력 수학 & 영어 몰입"},
+                {"grade_id": "GRADE_MID", "grade_name": "중등 1~3학년 (광교/다산/연무중)", "target_schools": "광교중, 다산중, 연무중, 이의중", "main_program": "내신 만점 & 고등 선행"},
+                {"grade_id": "GRADE_HIGH", "grade_name": "고등 1~3학년 (광교/이의/유신고)", "target_schools": "광교고, 이의고, 유신고, 창현고, 수원외고", "main_program": "수능 1등급 & 학생부 종합"}
+            ]),
+            "dim_curriculum_spec (커리큘럼/클리닉 스펙 마스터)": pd.DataFrame([
+                {"spec_id": "SPEC_1TO1_CLINIC", "spec_name": "1:1 전담 조교 오답 클리닉", "extra_fee": "0원 (수강료 전액포함)", "schedule": "매주 2회 회당 90분", "format": "1:1 첨삭 및 미통과자 재시험"},
+                {"spec_id": "SPEC_DAILY_TEST", "spec_name": "일일 누적 백지테스트 & 모바일 리포트", "extra_fee": "0원 (기본관리)", "schedule": "매 수업 전 30분", "format": "백지테스트 + 학부모 카톡 리포트"},
+                {"spec_id": "SPEC_NEAR_STATION", "spec_name": "광교중앙역 3번출구 도보 3분", "extra_fee": "도보 안심통학", "schedule": "상시", "format": "신분당선/버스환승센터 초역세권"},
+                {"spec_id": "SPEC_MED_PREP", "spec_name": "의대 지망생 킬러문항 특화반", "extra_fee": "+월 150,000원", "schedule": "주말 3시간 특강", "format": "8명 소수정예 킬러 4점 마스터"}
+            ]),
+            "dim_admission_benefit (입시실적/혜택 마스터)": pd.DataFrame([
+                {"benefit_id": "BENEFIT_SKY_PASS", "benefit_title": "2024 의치약학 & SKY 42명 합격", "value_desc": "의대 14명 / 서울대 9명 최다 배출", "discount_amt": "입시 실적 1위"},
+                {"benefit_id": "BENEFIT_FREE_LEVELTEST", "benefit_title": "AI 정밀 진단평가 & 1:1 입시컨설팅", "value_desc": "10만원 상당 진단평가 무료 응시", "discount_amt": "100,000원 전액 무료"},
+                {"benefit_id": "BENEFIT_SHUTTLE_FREE", "benefit_title": "광교 전지역 안심 셔틀버스 무료 운행", "value_desc": "직영 기사님 전노선 무료 셔틀 운행", "discount_amt": "월 5만원 셔틀비 무료"},
+                {"benefit_id": "BENEFIT_SIBLING_DISCOUNT", "benefit_title": "형제/자매 및 2과목 수강 10% 할인", "value_desc": "가구당 사교육비 패밀리 장학 지원", "discount_amt": "월 4~8만원 장학할인"}
+            ]),
+            "rel_academy_curriculum (학원-커리큘럼 매핑 테이블)": pd.DataFrame([
+                {"academy_id": "ACAD_DEEP_MATH", "spec_id": "SPEC_1TO1_CLINIC", "feature": "정규수업 후 1:1 오답 클리닉 100% 진행", "weight_purchase": 0.1, "weight_info": 0.9},
+                {"academy_id": "ACAD_DEEP_MATH", "spec_id": "SPEC_NEAR_STATION", "feature": "광교중앙역 3번출구 200m 초역세권", "weight_purchase": 0.1, "weight_info": 0.9},
+                {"academy_id": "ACAD_FUTURE_SCI", "spec_id": "SPEC_MED_PREP", "feature": "의대 정시대비 고난도 킬러 과탐 특화", "weight_purchase": 0.1, "weight_info": 0.9},
+                {"academy_id": "ACAD_DYNA_ENG", "spec_id": "SPEC_DAILY_TEST", "feature": "어휘/문법 누적 테스트 및 학부모 리포트", "weight_purchase": 0.1, "weight_info": 0.9}
+            ]),
+            "rel_subject_benefit (과목-입시혜택 매핑 테이블)": pd.DataFrame([
+                {"subject_id": "SUBJ_MATH", "benefit_id": "BENEFIT_SKY_PASS", "ksp": "수학 1등급 비율 68% 달성", "weight_info": 0.1, "weight_purchase": 0.9},
+                {"subject_id": "SUBJ_SCI", "benefit_id": "BENEFIT_SKY_PASS", "ksp": "의대/치대/약대 14명 최다 배출", "weight_info": 0.1, "weight_purchase": 0.9},
+                {"subject_id": "SUBJ_ENG", "benefit_id": "BENEFIT_SHUTTLE_FREE", "ksp": "초등 전용 안심 셔틀 무료 순환", "weight_info": 0.1, "weight_purchase": 0.9},
+                {"subject_id": "SUBJ_KOR", "benefit_id": "BENEFIT_FREE_LEVELTEST", "ksp": "수능 국어 비문학 취약영역 무료 진단", "weight_info": 0.1, "weight_purchase": 0.9}
             ])
         }
 
@@ -1051,7 +1212,7 @@ def generate_bigquery_gql(seed_node_id: str, intent: str, max_hop: int, weight_t
     s.name AS spec_allowance,
     s.extra_fee AS extra_overage_cost,
     e.weight AS option_priority_cost"""
-    else:
+    elif domain_id == "semiconductor":
         if intent == "INFO_SEARCH":
             return_clause = """RETURN 
     p.name AS process_stage,
@@ -1067,11 +1228,28 @@ def generate_bigquery_gql(seed_node_id: str, intent: str, max_hop: int, weight_t
     s.name AS equipment_spec,
     s.eq_price AS equipment_capex,
     e.weight AS control_priority_cost"""
+    else:
+        # edu_academy (광교 학원가)
+        if intent == "INFO_SEARCH":
+            return_clause = """RETURN 
+    p.name AS subject_category,
+    m.name AS admission_benefit_title,
+    m.discount_amt AS scholarship_benefit,
+    m.desc AS entrance_details,
+    e.weight AS relevance_cost"""
+        else:
+            return_clause = """RETURN 
+    p.name AS subject_category,
+    c.name AS academy_course,
+    c.tuition_fee AS monthly_tuition_krw,
+    s.name AS curriculum_spec,
+    s.extra_fee AS clinic_extra_cost,
+    e.weight AS option_priority_cost"""
 
     if intent == "INFO_SEARCH":
         gql_standard = f"""-- =========================================================================
--- Google Cloud BigQuery GQL: [{domain_meta['name']}] 정보/영향도 탐색 의도 (INFO_SEARCH)
--- 목적: {mkt_type} 영향도 및 메트릭({rel_mkt}) 우선 추출
+-- Google Cloud BigQuery GQL: [{domain_meta['name']}] 정보/혜택/실적 탐색 의도 (INFO_SEARCH)
+-- 목적: {mkt_type} 입시 실적 및 장학 혜택({rel_mkt}) 우선 추출
 -- =========================================================================
 GRAPH `{dataset}`
 MATCH (p:{seed_type} {{name: '{seed_name}'}})-[e:{rel_mkt}]->(m:{mkt_type})
@@ -1081,8 +1259,8 @@ ORDER BY
     relevance_cost ASC;"""
     else:
         gql_standard = f"""-- =========================================================================
--- Google Cloud BigQuery GQL: [{domain_meta['name']}] 레시피/설비 제어 의도 (PURCHASE_INTENT)
--- 목적: 세부 파라미터별 변경 비용 및 설비 스펙({rel_spec}) 정밀 추출
+-- Google Cloud BigQuery GQL: [{domain_meta['name']}] 수강 상담/커리큘럼 제어 의도 (PURCHASE_INTENT)
+-- 목적: 세부 학원/강좌별 수강료 및 클리닉 스펙({rel_spec}) 정밀 추출
 -- =========================================================================
 GRAPH `{dataset}`
 MATCH (p:{seed_type} {{name: '{seed_name}'}})<-[:{rel_belongs}]-(c:{child_type})-[e:{rel_spec}]->(s:{spec_type})
@@ -1292,7 +1470,7 @@ CREATE OR REPLACE PROPERTY GRAPH `gcp-project-telco.plan_ontology.telco_plan_sem
       PROPERTIES (weight_info, weight_purchase, monthly_value)
   );"""
 
-    else:
+    elif "반도체" in domain or "semiconductor" in domain.lower():
         return """-- =========================================================================
 -- 4. BigQuery Property Graph 정의: 반도체 8대 공정 및 레시피 (Semiconductor)
 -- 데이터셋: `gcp-project-semicon.fab_ontology.semiconductor_process_graph`
@@ -1343,6 +1521,59 @@ CREATE OR REPLACE PROPERTY GRAPH `gcp-project-semicon.fab_ontology.semiconductor
       DESTINATION KEY (impact_id) REFERENCES dim_yield_impact(impact_id)
       LABEL AFFECTS_YIELD 
       PROPERTIES (weight_info, weight_purchase, correlation_score)
+  );"""
+
+    else:
+        return """-- =========================================================================
+-- 5. BigQuery Property Graph 정의: 광교 학원가 교육 도메인 (Edu Academy)
+-- 데이터셋: `gcp-project-edu.academy_ontology.gwanggyo_edu_graph`
+-- =========================================================================
+CREATE OR REPLACE PROPERTY GRAPH `gcp-project-edu.academy_ontology.gwanggyo_edu_graph`
+  NODE TABLES (
+    dim_subject_category 
+      KEY (subject_id) 
+      LABEL SubjectCategory 
+      PROPERTIES (subject_name, category, target_system, faculty),
+    dim_academy_course 
+      KEY (academy_id) 
+      LABEL AcademyCourse 
+      PROPERTIES (academy_name, tuition_fee, tuition_formatted, location, target_grade),
+    dim_school_grade 
+      KEY (grade_id) 
+      LABEL SchoolGrade 
+      PROPERTIES (grade_name, target_schools, main_program),
+    dim_curriculum_spec 
+      KEY (spec_id) 
+      LABEL CurriculumSpec 
+      PROPERTIES (spec_name, extra_fee, schedule, format),
+    dim_admission_benefit 
+      KEY (benefit_id) 
+      LABEL AdmissionBenefit 
+      PROPERTIES (benefit_title, value_desc, discount_amt)
+  )
+  EDGE TABLES (
+    dim_academy_course AS rel_academy_subject 
+      KEY (academy_id, subject_id)
+      SOURCE KEY (academy_id) REFERENCES dim_academy_course(academy_id)
+      DESTINATION KEY (subject_id) REFERENCES dim_subject_category(subject_id)
+      LABEL BELONGS_TO,
+    dim_academy_course AS rel_academy_grade 
+      KEY (academy_id, target_grade)
+      SOURCE KEY (academy_id) REFERENCES dim_academy_course(academy_id)
+      DESTINATION KEY (target_grade) REFERENCES dim_school_grade(grade_id)
+      LABEL TARGETS_GRADE,
+    rel_academy_curriculum 
+      KEY (academy_id, spec_id)
+      SOURCE KEY (academy_id) REFERENCES dim_academy_course(academy_id)
+      DESTINATION KEY (spec_id) REFERENCES dim_curriculum_spec(spec_id)
+      LABEL PROVIDES_CURRICULUM 
+      PROPERTIES (weight_purchase, weight_info, feature),
+    rel_subject_benefit 
+      KEY (subject_id, benefit_id)
+      SOURCE KEY (subject_id) REFERENCES dim_subject_category(subject_id)
+      DESTINATION KEY (benefit_id) REFERENCES dim_admission_benefit(benefit_id)
+      LABEL OFFERS_BENEFIT 
+      PROPERTIES (weight_info, weight_purchase, ksp)
   );"""
 
 
@@ -1443,7 +1674,7 @@ def build_llm_context_and_response(intent: str, seed_node_id: str, active_nodes:
 2. **너겟 5G 청년 무제한 [월 59,000원]**: 만 34세 이하 무약정 온라인 요금제, 기본 12GB 소진 후에도 **5Mbps QoS (추가요금 無, FHD 유튜브 가능)**.
 3. **5G 시니어 49 [월 49,000원]**: 만 65세 이상 어르신 전용, 기본 15GB + **보이스피싱 안심 보험 (최대 300만원 무상 보상)** 무료."""
 
-    else:
+    elif domain_id == "semiconductor":
         # 반도체 8대 공정 (Semiconductor)
         if intent == "INFO_SEARCH":
             llm_text = f"""### 🔬 [삼성전자DS 8대 공정 레시피 변경에 따른 수율 및 품질 영향도 분석]
@@ -1465,6 +1696,25 @@ def build_llm_context_and_response(intent: str, seed_node_id: str, active_nodes:
    - **챔버 스펙**: -70℃~+60℃ 정전척(ESC) 냉각 칠러 제어 및 60MHz/2MHz Dual RF 펄스 동기화.
 3. **TEL Certas LEAGEND High-K ALD ($11.2M)**:
    - **박막 스펙**: 3nm GAA MBCFET 다층 채널 280℃ 균일 증착 (0.1Å 정밀 제어, Step Coverage 99.8%)."""
+
+    else:
+        # 광교 학원가 교육 (Edu Academy)
+        if intent == "INFO_SEARCH":
+            llm_text = f"""### 🎓 [광교중앙역 초·중·고 단과학원 입시 실적 & 장학 혜택 안내]
+학부모님께서 문의하신 과목별 최상위 입시 실적 및 무료 진단 혜택 분석입니다:
+1. **2024 의치약학계열 & SKY 42명 최다 배출**: 광교센터 단일 센터 기준 의대 14명 / 서울대 9명 합격 (입시 실적 1위).
+2. **AI 정밀 진단평가 & 1:1 입시 컨설팅 무료 [10만원 상당 혜택]**: 취약 단원 분석 및 2028 개편 대입 로드맵 무료 수립.
+3. **광교 전지역 안심 셔틀버스 무료 운행**: 광교중앙역-호수공원-웰빙타운 직영 셔틀 무료 지원 (형제 등록 시 10% 추가 장학 할인)."""
+        else:
+            llm_text = f"""### 📐 [광교중앙역 단과학원 월 수강료 & 1:1 클리닉 커리큘럼 스펙]
+자녀 학년 및 목표 과목에 따른 맞춤형 학원 수강료 및 관리 시스템 비교 분석입니다:
+1. **깊은생각 광교센터 심화수학 [월 460,000원]** (중등/고등):
+   - **위치/스펙**: 광교중앙역 3번출구 도보 3분 초역세권, 5단계 레벨별 주 3회 3시간 맞춤 수업.
+   - **클리닉 관리**: 매주 1:1 전담 조교 오답 클리닉 (수강료 내 100% 무료 포함, 당일 미통과자 재시험).
+2. **미래탐구 광교 의대과탐관 [월 480,000원]** (고등 의치약대반):
+   - **특화 스펙**: 광교고/이의고 내신 1등급 대비 물화생지 하이탑 + **의대 지망생 킬러문항 특화반 (+월 15만원 추가옵션)**.
+3. **정상어학원 CHESS & ACE [월 390,000원]** (초등/중등):
+   - **수업 스펙**: 원어민 디베이트 + 일일 누적 백지테스트 & 학부모 카톡 주간 리포트 발송."""
 
     return context_payload, llm_text, extracted_specs, extracted_mkt, extracted_children
 
@@ -2437,7 +2687,8 @@ def main():
         "🚗 자동차 (Automotive)",
         "🛍️ 이커머스 (E-Commerce)",
         "📱 모바일 요금제 (Telco)",
-        "🔬 반도체 8대 공정 (Semiconductor)"
+        "🔬 반도체 8대 공정 (Semiconductor)",
+        "🎓 광교 학원가 (Edu Academy)"
     ]
 
     def on_domain_change():

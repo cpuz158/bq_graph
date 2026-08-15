@@ -5,13 +5,13 @@
 [![Google Cloud BigQuery](https://img.shields.io/badge/Google%20Cloud-BigQuery%20Graph%20(GQL)-4285F4.svg?logo=googlecloud&logoColor=white)](https://cloud.google.com/bigquery)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**Google Cloud BigQuery Graph (GQL)** 및 **시맨틱 온톨로지(Semantic Ontology)** 기반의 **4대 비즈니스 도메인(🚗 자동차 / 🛍️ 이커머스 / 📱 모바일 요금제 / 🔬 반도체 8대 공정)** 지식 그래프 탐색 및 LLM 컨텍스트 그라운딩 시뮬레이터입니다.
+**Google Cloud BigQuery Graph (GQL)** 및 **시맨틱 온톨로지(Semantic Ontology)** 기반의 **5대 비즈니스 도메인(🚗 자동차 / 🛍️ 이커머스 / 📱 모바일 요금제 / 🔬 반도체 8대 공정 / 🎓 광교 학원가 교육)** 지식 그래프 탐색 및 LLM 컨텍스트 그라운딩 시뮬레이터입니다.
 
 사용자의 발화 의도(`INFO_SEARCH` vs `PURCHASE_INTENT`)와 비즈니스 공리(Axioms & Constraints)에 따라 최적의 지식 서브그래프를 실시간으로 탐색하고, BigQuery GQL 표준 쿼리 생성 및 RAG 컨텍스트 주입 결과를 시각화합니다.
 
 ---
 
-## 🌟 4대 비즈니스 도메인 (Business Domains)
+## 🌟 5대 비즈니스 도메인 (Business Domains)
 
 | 도메인 | 상위 엔티티 (Parent) | 하위 SKU/코드 (Child) | 마케팅/혜택/영향 (Marketing/Impact) | 기술/제원 스펙 (Spec) | 필터 기준 (Filter) |
 |---|---|---|---|---|---|
@@ -19,6 +19,7 @@
 | **🛍️ 이커머스 (E-Commerce)** | `BrandCategory` (나이키 러닝, 텐트) | `ProductSKU` (페가수스, 알파플라이) | `PromoEvent` (20% 쿠폰, 사은품) | `ProductSpec` (ZoomX, 카본플레이트) | 고객 세그먼트 (`입문`, `마라톤`) |
 | **📱 모바일 요금제 (Telco)** | `PlanFamily` (5G 프리미어, 너겟) | `PlanCode` (슈퍼, 청년무제한) | `MarketingBenefit` (OTT 무료, VIP) | `PlanSpec` (무제한, 테더링 50G, QoS) | 가입 대상 (`일반`, `청년`, `시니어`) |
 | **🔬 반도체 (Semiconductor)** | `ProcessStage` (노광, 식각, 증착, 세정) | `RecipeParam` (EUV Dose, 극저온, ALD) | `YieldImpact` (결함 18% 감소, 수율 개선) | `EquipmentSpec` (ASML EUV, Lam, TEL) | 생산 팹 라인 (`P3 DRAM`, `P4 NAND`, `S5 GAA`) |
+| **🎓 광교 학원가 (Edu Academy)** | `SubjectCategory` (수학, 과학, 영어, 국어) | `AcademyCourse` (깊은생각, 미래탐구, 정상어학) | `AdmissionBenefit` (SKY/의대 실적, 무료진단) | `CurriculumSpec` (1:1 클리닉, 도보3분) | 자녀 학년 (`초등`, `중등`, `고등`) |
 
 ---
 
